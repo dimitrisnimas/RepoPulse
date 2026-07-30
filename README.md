@@ -2,7 +2,19 @@
 
 Beautiful GitHub metrics. Built to stay online.
 
-RepoPulse is a production-minded Next.js foundation for customizable and reliable GitHub statistics cards. This phase contains the full product shell, navigation, responsive UI, design system, playground mock, documentation, pricing, dashboard preview, and health endpoint. No real GitHub or persistence logic is included yet.
+RepoPulse is a private-source, free GitHub statistics card service. It retrieves public profile data through GitHub GraphQL, normalizes the result, renders a standalone SVG, and serves it through a cache-aware public endpoint.
+
+## README usage
+
+```md
+![RepoPulse GitHub Stats](https://repopulse.kubik.gr/api/cards/overview?username=dimitrisnimas)
+```
+
+Example URL:
+
+```text
+https://repopulse.kubik.gr/api/cards/overview?username=dimitrisnimas&theme=github-dark&width=520&show_avatar=true
+```
 
 ## Local development
 
@@ -14,44 +26,99 @@ pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:3000`. Validate changes with:
+Open `http://localhost:3000`. The website works without Redis. The card endpoint needs `GITHUB_TOKEN` to retrieve live data.
+
+## GitHub token
+
+1. Create a fine-grained personal access token in GitHub settings.
+2. Grant it read-only access to public repositories and public profile data only.
+3. Do not select private repositories.
+4. Set `GITHUB_TOKEN` in `.env.local` and in Vercel.
+
+The token is read exclusively by server modules and is never included in browser code, SVG output, logs, or response headers.
+
+## Upstash Redis
+
+Redis is optional locally but recommended in production:
+
+1. Create an Upstash Redis database.
+2. Copy its REST URL and REST token.
+3. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+
+Without Redis, RepoPulse uses process-local memory. Cache failures degrade safely to GitHub retrieval rather than breaking the endpoint.
+
+## Environment
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `NEXT_PUBLIC_APP_URL` | Public application origin | `https://repopulse.kubik.gr` |
+| `GITHUB_TOKEN` | Server-only GitHub GraphQL credential | — |
+| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint | optional |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash REST credential | optional |
+| `REPOPULSE_CACHE_TTL_SECONDS` | Fresh SVG lifetime | `3600` |
+| `REPOPULSE_STALE_TTL_SECONDS` | Stale fallback lifetime | `86400` |
+| `REPOPULSE_RATE_LIMIT_REQUESTS` | Uncached requests per window | `60` |
+| `REPOPULSE_RATE_LIMIT_WINDOW_SECONDS` | Rate-limit window | `60` |
+
+## Overview API
+
+`GET /api/cards/overview`
+
+Required: `username`
+
+Optional:
+
+- `theme`: `dark`, `light`, `github-dark`, `github-light`, `midnight`
+- `width`: `320`–`900`
+- `show_avatar`: `true`, `false`, `1`, `0`
+- `show_icons`: `true`, `false`, `1`, `0`
+- `hide_border`: `true`, `false`, `1`, `0`
+- `hide`: comma-separated `contributions,repositories,stars,forks,pull_requests,commits,followers,languages`
+- `locale`: `en`, `el`, `de`, `fr`, `es`, `it`, `pt`, `ja`
+
+Every response is SVG, including validation, missing-user, rate-limit, and service errors. Cache state is exposed through `X-RepoPulse-Cache: HIT|MISS|STALE`.
+
+GitHub may cache README images, so updated data may not appear immediately even after the RepoPulse cache refreshes.
+
+## Architecture
+
+- `src/app/api/cards`: HTTP validation, status codes, safe response headers, and orchestration.
+- `src/server/github`: typed fixed GraphQL queries, client errors, and full repository pagination.
+- `src/server/cards`: normalized card models, mapping, SVG utilities, themes, and renderers.
+- `src/server/cache`: Redis-compatible cache-aside storage with memory fallback and stale serving.
+- `src/server/rate-limit`: Redis-backed IP limits with a safe local fallback.
+- `src/server/observability`: structured Vercel-friendly operational logs.
+- `src/components/playground`: debounced client configuration and live SVG preview.
+
+Raw GitHub response objects never reach the renderer. Route handlers contain neither GraphQL queries nor SVG templates.
+
+## Validation
 
 ```bash
 pnpm lint
+pnpm test
 pnpm build
 pnpm format:check
 ```
 
-## Environment
+Tests never call GitHub. They cover validation, username rules, XML escaping, themes, number formatting, language percentages, cache keys, normalization, SVG rendering, error output, and rate limiting.
 
-`NEXT_PUBLIC_APP_URL` has a safe production default in `.env.example`. Database, GitHub, and Redis variables are optional during this phase and validated through Zod in `src/config/env.ts`.
+## Vercel deployment
 
-## Architecture
+1. Import the repository into Vercel from the project root.
+2. Keep the Next.js framework preset and default output directory.
+3. Add the environment variables listed above.
+4. Set `repopulse.kubik.gr` as the production domain.
+5. Deploy and verify `/api/health` and `/api/cards/overview?username=dimitrisnimas`.
 
-- `src/app`: App Router routes and layouts, grouped into marketing and dashboard surfaces.
-- `src/components`: UI primitives, shared layout, marketing, playground, and dashboard components.
-- `src/config`: product metadata and typed environment validation.
-- `src/lib`: framework-agnostic shared utilities.
-- `src/server`: boundaries for future database, repository, service, and validation code.
-- `src/types`: shared domain types.
+## Known limitations
 
-React Server Components are the default. Client components are limited to interactions such as switches, copying, and playground preview state.
-
-## Deploy to Vercel
-
-1. Push this repository to your Git provider.
-2. Import it into Vercel with the Next.js preset.
-3. Set the production domain to `repopulse.kubik.gr`.
-4. Add `NEXT_PUBLIC_APP_URL=https://repopulse.kubik.gr`.
-5. Add database, GitHub, and Redis secrets only when those integrations are implemented.
-6. Deploy. Vercel detects `pnpm-lock.yaml` and uses pnpm automatically.
+- Contribution counts follow GitHub's current contribution collection period.
+- Avatar rendering depends on GitHub's image host and remains optional.
+- In-memory fallback is process-local and is not shared across serverless instances.
+- GitHub and GitHub's README image proxy may each add their own caching delay.
+- Language totals use the language data exposed for owned, non-fork public repositories.
 
 ## Intentionally deferred
 
-- GitHub API calls and OAuth
-- Database entities and Prisma migrations
-- Real SVG card rendering
-- Redis caching and rate limiting
-- Payments, plans, and subscription logic
-- Authentication enforcement
-- Real API usage tracking
+Languages-only, contribution calendar, streak and repository cards; OAuth; private statistics; accounts; database entities; dashboard analytics; arbitrary/custom themes and colors; PNG generation; subscriptions, payments, and organization analytics.

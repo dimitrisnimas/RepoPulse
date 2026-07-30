@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: { default: "RepoPulse — Beautiful GitHub metrics", template: "%s · RepoPulse" },
   description: siteConfig.description,
-  openGraph: { title: "RepoPulse", description: siteConfig.description, url: siteConfig.url, siteName: "RepoPulse", type: "website" },
-  twitter: { card: "summary_large_image", title: "RepoPulse", description: siteConfig.description },
+  openGraph: { title: "RepoPulse", description: siteConfig.description, url: siteConfig.url, siteName: "RepoPulse", type: "website", images: [{ url: "/og.png", width: 1744, height: 907, alt: "RepoPulse — Beautiful GitHub metrics" }] },
+  twitter: { card: "summary_large_image", title: "RepoPulse", description: siteConfig.description, images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
