@@ -9,7 +9,7 @@ export const PROFILE_QUERY = `
         totalCount
         pageInfo { hasNextPage endCursor }
         nodes {
-          stargazerCount forkCount
+          stargazerCount forkCount isArchived
           languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
             edges { size node { name color } }
           }
@@ -32,10 +32,24 @@ export const REPOSITORIES_QUERY = `
       repositories(first: 100, after: $after, privacy: PUBLIC, ownerAffiliations: OWNER, isFork: false, orderBy: {field: UPDATED_AT, direction: DESC}) {
         pageInfo { hasNextPage endCursor }
         nodes {
-          stargazerCount forkCount
+          stargazerCount forkCount isArchived
           languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
             edges { size node { name color } }
           }
+        }
+      }
+    }
+  }
+`;
+
+export const CONTRIBUTIONS_QUERY = `
+  query RepoPulseContributions($login: String!, $from: DateTime!, $to: DateTime!) {
+    user(login: $login) {
+      login
+      contributionsCollection(from: $from, to: $to) {
+        contributionCalendar {
+          totalContributions
+          weeks { contributionDays { date contributionCount contributionLevel weekday } }
         }
       }
     }

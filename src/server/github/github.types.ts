@@ -2,6 +2,7 @@ export interface GitHubLanguageEdge { size: number; node: { name: string; color:
 export interface GitHubRepositoryNode {
   stargazerCount: number;
   forkCount: number;
+  isArchived: boolean;
   languages: { edges: GitHubLanguageEdge[] };
 }
 export interface GitHubRepositoryPage {
@@ -31,4 +32,8 @@ export interface GitHubRepositoriesResponse { user: null | { repositories: GitHu
 export interface GitHubProfileAggregate {
   profile: NonNullable<GitHubProfileResponse["user"]>;
   repositories: GitHubRepositoryNode[];
+}
+export interface GitHubContributionDay { date: string; contributionCount: number; contributionLevel: "NONE" | "FIRST_QUARTILE" | "SECOND_QUARTILE" | "THIRD_QUARTILE" | "FOURTH_QUARTILE"; weekday: number }
+export interface GitHubContributionsResponse {
+  user: null | { login: string; contributionsCollection: { contributionCalendar: { totalContributions: number; weeks: Array<{ contributionDays: GitHubContributionDay[] }> } } };
 }

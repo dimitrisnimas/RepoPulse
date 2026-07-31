@@ -16,8 +16,8 @@ const aggregate: GitHubProfileAggregate = {
     contributionsCollection: { totalCommitContributions: 50, totalIssueContributions: 4, totalPullRequestContributions: 9, totalPullRequestReviewContributions: 6, contributionCalendar: { totalContributions: 80 } },
   },
   repositories: [
-    { stargazerCount: 5, forkCount: 2, languages: { edges: [{ size: 800, node: { name: "TypeScript", color: "#3178c6" } }, { size: 200, node: { name: "CSS", color: "#563d7c" } }] } },
-    { stargazerCount: 7, forkCount: 1, languages: { edges: [{ size: 200, node: { name: "TypeScript", color: "#3178c6" } }] } },
+    { stargazerCount: 5, forkCount: 2, isArchived: false, languages: { edges: [{ size: 800, node: { name: "TypeScript", color: "#3178c6" } }, { size: 200, node: { name: "CSS", color: "#563d7c" } }] } },
+    { stargazerCount: 7, forkCount: 1, isArchived: false, languages: { edges: [{ size: 200, node: { name: "TypeScript", color: "#3178c6" } }] } },
   ],
 };
 const options = { username: "dimitrisnimas", theme: "midnight", width: 480, showAvatar: true, showIcons: true, hideBorder: false, hidden: [], locale: "en" } as const;

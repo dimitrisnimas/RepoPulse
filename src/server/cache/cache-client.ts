@@ -28,9 +28,9 @@ export async function getCachedSvg(key: string): Promise<CacheResult<string> | n
   return { value: entry.value, state: entry.freshUntil > now ? "HIT" : "STALE", fresh: entry.freshUntil > now };
 }
 
-export async function setCachedSvg(key: string, value: string): Promise<void> {
+export async function setCachedSvg(key: string, value: string, freshSeconds = env.REPOPULSE_CACHE_TTL_SECONDS): Promise<void> {
   const now = Date.now();
-  const entry: CacheEntry<string> = { value, freshUntil: now + env.REPOPULSE_CACHE_TTL_SECONDS * 1000, staleUntil: now + env.REPOPULSE_STALE_TTL_SECONDS * 1000 };
+  const entry: CacheEntry<string> = { value, freshUntil: now + freshSeconds * 1000, staleUntil: now + env.REPOPULSE_STALE_TTL_SECONDS * 1000 };
   memory.set(key, entry);
   try { await redis(["SET", key, JSON.stringify(entry), "EX", env.REPOPULSE_STALE_TTL_SECONDS]); } catch { /* memory fallback remains available */ }
 }

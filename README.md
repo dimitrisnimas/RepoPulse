@@ -8,6 +8,9 @@ RepoPulse is a private-source, free GitHub statistics card service. It retrieves
 
 ```md
 ![RepoPulse GitHub Stats](https://repopulse.kubik.gr/api/cards/overview?username=dimitrisnimas)
+![Top Languages](https://repopulse.kubik.gr/api/cards/languages?username=dimitrisnimas)
+![Contributions](https://repopulse.kubik.gr/api/cards/contributions?username=dimitrisnimas)
+![GitHub Streak](https://repopulse.kubik.gr/api/cards/streak?username=dimitrisnimas)
 ```
 
 Example URL:
@@ -60,9 +63,12 @@ Without Redis, RepoPulse uses process-local memory. Cache failures degrade safel
 | `REPOPULSE_RATE_LIMIT_REQUESTS` | Uncached requests per window | `60` |
 | `REPOPULSE_RATE_LIMIT_WINDOW_SECONDS` | Rate-limit window | `60` |
 
-## Overview API
+## Card APIs
 
-`GET /api/cards/overview`
+- `GET /api/cards/overview`
+- `GET /api/cards/languages`
+- `GET /api/cards/contributions`
+- `GET /api/cards/streak`
 
 Required: `username`
 
@@ -77,6 +83,8 @@ Optional:
 - `locale`: `en`, `el`, `de`, `fr`, `es`, `it`, `pt`, `ja`
 
 Every response is SVG, including validation, missing-user, rate-limit, and service errors. Cache state is exposed through `X-RepoPulse-Cache: HIT|MISS|STALE`.
+
+Languages supports `layout=default|compact|donut`, `langs_count`, `exclude`, and `hide_progress`. Contributions supports `year`, `show_total`, `show_legend`, and `show_weekdays`. Streak supports `year` and `show_ring`. See `/docs` for the complete parameter reference and calculation methodology.
 
 GitHub may cache README images, so updated data may not appear immediately even after the RepoPulse cache refreshes.
 
@@ -101,7 +109,7 @@ pnpm build
 pnpm format:check
 ```
 
-Tests never call GitHub. They cover validation, username rules, XML escaping, themes, number formatting, language percentages, cache keys, normalization, SVG rendering, error output, and rate limiting.
+Tests never call GitHub. They cover validation, language aggregation, exclusions, donut segments, contribution normalization, month placement, UTC year rules, streak boundary cases, XML safety, cache keys, SVG rendering, error output, and rate limiting.
 
 ## Vercel deployment
 
@@ -109,11 +117,11 @@ Tests never call GitHub. They cover validation, username rules, XML escaping, th
 2. Keep the Next.js framework preset and default output directory.
 3. Add the environment variables listed above.
 4. Set `repopulse.kubik.gr` as the production domain.
-5. Deploy and verify `/api/health` and `/api/cards/overview?username=dimitrisnimas`.
+5. Deploy and verify `/api/health` and all four `/api/cards/*` endpoints.
 
 ## Known limitations
 
-- Contribution counts follow GitHub's current contribution collection period.
+- Contribution data is limited to what GitHub exposes to the authenticated server token.
 - Avatar rendering depends on GitHub's image host and remains optional.
 - In-memory fallback is process-local and is not shared across serverless instances.
 - GitHub and GitHub's README image proxy may each add their own caching delay.
@@ -121,4 +129,4 @@ Tests never call GitHub. They cover validation, username rules, XML escaping, th
 
 ## Intentionally deferred
 
-Languages-only, contribution calendar, streak and repository cards; OAuth; private statistics; accounts; database entities; dashboard analytics; arbitrary/custom themes and colors; PNG generation; subscriptions, payments, and organization analytics.
+Repository cards; OAuth; private statistics; accounts; database entities; saved presets; dashboard analytics; API keys; arbitrary/custom themes and colors; PNG generation; banners; subscriptions, payments, and organization analytics.
