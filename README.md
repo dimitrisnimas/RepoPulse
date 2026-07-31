@@ -103,7 +103,7 @@ Safe GitHub requests use bounded retries, explicit timeouts and an in-memory cir
 - `GET /api/status`: safe public service/card inventory.
 - `GET /api/internal/refresh`: authenticated, bounded Vercel Cron refresh using `Authorization: Bearer $CRON_SECRET`.
 
-`vercel.json` schedules the refresh route hourly. Set `CRON_SECRET` in Vercel; never place its value in source control. Serverless memory is instance-local, so Upstash Redis is recommended for production cache sharing and distributed locks.
+`vercel.json` schedules the refresh route once daily at approximately 03:00 UTC, which is compatible with Vercel Hobby. Hobby execution may occur at any point during the 03:00–03:59 UTC window. Set `CRON_SECRET` in Vercel; never place its value in source control. Serverless memory is instance-local, so Upstash Redis is recommended for production cache sharing and distributed locks.
 
 GitHub may cache README images, so updated data may not appear immediately even after the RepoPulse cache refreshes.
 
