@@ -1,0 +1,2 @@
+export interface PinnedRepositoriesCardData{username:string;repositories:Array<{owner:string;name:string;description:string|null;url:string;primaryLanguage:{name:string;color:string}|null;stars:number;forks:number;isArchived:boolean}>}
+export interface PinnedOptions{username:string;theme:string;width:number;columns:1|2;limit:number;showDescription:boolean;showLanguage:boolean;showStars:boolean;showForks:boolean;hideBorder:boolean;locale:string}

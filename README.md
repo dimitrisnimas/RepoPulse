@@ -11,6 +11,9 @@ RepoPulse is a private-source, free GitHub statistics card service. It retrieves
 ![Top Languages](https://repopulse.kubik.gr/api/cards/languages?username=dimitrisnimas)
 ![Contributions](https://repopulse.kubik.gr/api/cards/contributions?username=dimitrisnimas)
 ![GitHub Streak](https://repopulse.kubik.gr/api/cards/streak?username=dimitrisnimas)
+![Repository](https://repopulse.kubik.gr/api/cards/repository?owner=dimitrisnimas&repo=repository-name)
+![Developer Profile](https://repopulse.kubik.gr/api/cards/profile?username=dimitrisnimas)
+![Pinned Repositories](https://repopulse.kubik.gr/api/cards/pinned?username=dimitrisnimas)
 ```
 
 Example URL:
@@ -69,6 +72,9 @@ Without Redis, RepoPulse uses process-local memory. Cache failures degrade safel
 - `GET /api/cards/languages`
 - `GET /api/cards/contributions`
 - `GET /api/cards/streak`
+- `GET /api/cards/repository`
+- `GET /api/cards/profile`
+- `GET /api/cards/pinned`
 
 Required: `username`
 
@@ -85,6 +91,19 @@ Optional:
 Every response is SVG, including validation, missing-user, rate-limit, and service errors. Cache state is exposed through `X-RepoPulse-Cache: HIT|MISS|STALE`.
 
 Languages supports `layout=default|compact|donut`, `langs_count`, `exclude`, and `hide_progress`. Contributions supports `year`, `show_total`, `show_legend`, and `show_weekdays`. Streak supports `year` and `show_ring`. See `/docs` for the complete parameter reference and calculation methodology.
+
+Repository cards accept `owner`, `repo`, metric visibility, topics and license controls. Profile cards emphasize public developer identity fields. Pinned cards use the public GitHub pinned-items connection and support one or two columns with a limit of one to six repositories. Private and inaccessible repositories always receive a generic not-found SVG.
+
+## Reliability and diagnostics
+
+Safe GitHub requests use bounded retries, explicit timeouts and an in-memory circuit breaker. Rendered SVGs use fresh and stale cache windows, in-process promise deduplication and an optional short Redis lock. Stale cards are returned immediately during upstream trouble instead of breaking README images.
+
+- `GET /api/health`: inexpensive process liveness.
+- `GET /api/readiness`: GitHub configuration, optional Redis availability and circuit state.
+- `GET /api/status`: safe public service/card inventory.
+- `GET /api/internal/refresh`: authenticated, bounded Vercel Cron refresh using `Authorization: Bearer $CRON_SECRET`.
+
+`vercel.json` schedules the refresh route hourly. Set `CRON_SECRET` in Vercel; never place its value in source control. Serverless memory is instance-local, so Upstash Redis is recommended for production cache sharing and distributed locks.
 
 GitHub may cache README images, so updated data may not appear immediately even after the RepoPulse cache refreshes.
 
@@ -129,4 +148,4 @@ Tests never call GitHub. They cover validation, language aggregation, exclusions
 
 ## Intentionally deferred
 
-Repository cards; OAuth; private statistics; accounts; database entities; saved presets; dashboard analytics; API keys; arbitrary/custom themes and colors; PNG generation; banners; subscriptions, payments, and organization analytics.
+OAuth; private statistics; accounts; database entities; saved presets; dashboard analytics; API keys; arbitrary/custom themes and colors; PNG generation; banners; organization analytics; GitLab, Bitbucket and Azure DevOps; subscriptions and payments.

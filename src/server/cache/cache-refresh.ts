@@ -1,0 +1,4 @@
+import{env}from"@/config/env";import{cacheCommand}from"./cache-client";
+const memory=new Set<string>();
+export async function rememberCardUrl(url:string){const parsed=new URL(url);parsed.searchParams.delete("refresh");const safe=`${parsed.pathname}?${parsed.searchParams.toString()}`;memory.add(safe);while(memory.size>100)memory.delete(memory.values().next().value!);try{await cacheCommand(["LPUSH","repopulse:recent-cards",safe]);await cacheCommand(["LTRIM","repopulse:recent-cards",0,99])}catch{}}
+export async function recentCardUrls(){try{const result=await cacheCommand(["LRANGE","repopulse:recent-cards",0,env.REPOPULSE_REFRESH_MAX_ENTRIES-1]);if(Array.isArray(result))return[...new Set(result.filter((x):x is string=>typeof x==="string"))]}catch{}return[...memory].slice(0,env.REPOPULSE_REFRESH_MAX_ENTRIES)}

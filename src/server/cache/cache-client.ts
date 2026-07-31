@@ -13,6 +13,7 @@ async function redis(command: Array<string | number>): Promise<unknown> {
   if (!response.ok) throw new Error("Cache service unavailable");
   return ((await response.json()) as { result: unknown }).result;
 }
+export async function cacheCommand(command:Array<string|number>){return redis(command)}
 
 export async function getCachedSvg(key: string): Promise<CacheResult<string> | null> {
   const now = Date.now();

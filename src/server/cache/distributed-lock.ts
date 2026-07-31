@@ -1,0 +1,3 @@
+import{env}from"@/config/env";import{cacheCommand}from"./cache-client";
+export async function acquireDistributedLock(key:string){if(!env.UPSTASH_REDIS_REST_URL)return true;try{return(await cacheCommand(["SET",`lock:${key}`,crypto.randomUUID(),"NX","EX",env.REPOPULSE_DISTRIBUTED_LOCK_TTL_SECONDS]))==="OK"}catch{return true}}
+export async function waitForDistributedResult<T>(read:()=>Promise<T|null>){const started=Date.now();while(Date.now()-started<env.REPOPULSE_DEDUPLICATION_WAIT_MS){await new Promise((resolve)=>setTimeout(resolve,100));const value=await read();if(value)return value}return null}

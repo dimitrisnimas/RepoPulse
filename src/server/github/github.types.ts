@@ -15,6 +15,11 @@ export interface GitHubProfileResponse {
     name: string | null;
     avatarUrl: string;
     bio: string | null;
+    company: string | null;
+    location: string | null;
+    websiteUrl: string | null;
+    createdAt: string;
+    status: { message: string; emoji: string | null } | null;
     followers: { totalCount: number };
     following: { totalCount: number };
     repositories: GitHubRepositoryPage & { totalCount: number };
@@ -37,3 +42,5 @@ export interface GitHubContributionDay { date: string; contributionCount: number
 export interface GitHubContributionsResponse {
   user: null | { login: string; contributionsCollection: { contributionCalendar: { totalContributions: number; weeks: Array<{ contributionDays: GitHubContributionDay[] }> } } };
 }
+export interface GitHubRepositoryResponse{repository:null|{name:string;owner:{login:string};description:string|null;url:string;homepageUrl:string|null;primaryLanguage:{name:string;color:string|null}|null;stargazerCount:number;forkCount:number;issues:{totalCount:number};watchers:{totalCount:number};licenseInfo:{name:string}|null;repositoryTopics:{nodes:Array<{topic:{name:string}}>} ;isArchived:boolean;isFork:boolean;isTemplate:boolean;visibility:"PUBLIC"|"PRIVATE"|"INTERNAL";pushedAt:string|null;createdAt:string;defaultBranchRef:{name:string}|null}}
+export interface GitHubPinnedResponse{user:null|{login:string;pinnedItems:{nodes:Array<null|{__typename:string;name?:string;owner?:{login:string};description?:string|null;url?:string;primaryLanguage?:{name:string;color:string|null}|null;stargazerCount?:number;forkCount?:number;isArchived?:boolean}>}}}
