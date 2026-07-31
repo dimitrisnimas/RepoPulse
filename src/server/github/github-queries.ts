@@ -1,8 +1,7 @@
 export const PROFILE_QUERY = `
   query RepoPulseProfile($login: String!, $after: String) {
     user(login: $login) {
-      login name avatarUrl(size: 160) bio company location websiteUrl createdAt
-      status { message emoji }
+      login name avatarUrl(size: 160) bio
       followers { totalCount }
       following { totalCount }
       gists(privacy: PUBLIC) { totalCount }

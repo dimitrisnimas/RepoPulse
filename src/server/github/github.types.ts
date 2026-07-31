@@ -15,11 +15,6 @@ export interface GitHubProfileResponse {
     name: string | null;
     avatarUrl: string;
     bio: string | null;
-    company: string | null;
-    location: string | null;
-    websiteUrl: string | null;
-    createdAt: string;
-    status: { message: string; emoji: string | null } | null;
     followers: { totalCount: number };
     following: { totalCount: number };
     repositories: GitHubRepositoryPage & { totalCount: number };

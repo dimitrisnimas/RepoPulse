@@ -36,9 +36,9 @@ Open `http://localhost:3000`. The website works without Redis. The card endpoint
 
 ## GitHub token
 
-1. Create a fine-grained personal access token in GitHub settings.
-2. Grant it read-only access to public repositories and public profile data only.
-3. Do not select private repositories.
+1. Prefer a classic personal access token with no scopes, ideally from a dedicated service account. A no-scope classic token can read public GitHub data but cannot access private repositories.
+2. If a fine-grained token is used, ensure its public-repository selection covers every public repository that RepoPulse must aggregate. A fine-grained token tied to the profiled owner but restricted to selected repositories may return `FORBIDDEN` for that owner while other public profiles still work.
+3. Never grant RepoPulse access to private repositories.
 4. Set `GITHUB_TOKEN` in `.env.local` and in Vercel.
 
 The token is read exclusively by server modules and is never included in browser code, SVG output, logs, or response headers.

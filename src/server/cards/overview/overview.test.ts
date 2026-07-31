@@ -10,7 +10,7 @@ import type { GitHubProfileAggregate } from "@/server/github/github.types";
 
 const aggregate: GitHubProfileAggregate = {
   profile: {
-    login: "dimitrisnimas", name: "Dimitris Nimas", avatarUrl: "https://avatars.githubusercontent.com/u/1", bio: null, company: null, location: null, websiteUrl: null, createdAt: "2020-01-01T00:00:00Z", status: null,
+    login: "dimitrisnimas", name: "Dimitris Nimas", avatarUrl: "https://avatars.githubusercontent.com/u/1", bio: null,
     followers: { totalCount: 12 }, following: { totalCount: 3 }, gists: { totalCount: 1 },
     repositories: { totalCount: 2, nodes: [], pageInfo: { hasNextPage: false, endCursor: null } },
     contributionsCollection: { totalCommitContributions: 50, totalIssueContributions: 4, totalPullRequestContributions: 9, totalPullRequestReviewContributions: 6, contributionCalendar: { totalContributions: 80 } },
