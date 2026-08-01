@@ -9,3 +9,8 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
 .text-gradient { background: linear-gradient(110deg,#fff 20%,#a1a1aa 90%); -webkit-background-clip: text; color: transparent; }
 .glow { box-shadow: 0 0 120px 30px rgb(124 58 237 / .11); }
 button, a, input, select { -webkit-tap-highlight-color: transparent; }
+.studio-button { display: inline-flex; min-height: 2.25rem; align-items: center; gap: .5rem; border: 1px solid rgb(255 255 255 / .1); border-radius: .5rem; padding: .5rem .75rem; font-size: .75rem; color: #a1a1aa; transition: .15s ease; }
+.studio-button:hover { border-color: rgb(255 255 255 / .2); color: white; }
+.studio-button svg { width: .875rem; height: .875rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+@media (forced-colors: active) { button, input, select, textarea, [tabindex] { border: 1px solid ButtonText; } }

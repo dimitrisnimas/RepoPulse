@@ -4,6 +4,7 @@ export const siteConfig = {
     "Generate fast, customizable, and reliable GitHub profile cards without depending on unstable public instances.",
   url: "https://repopulse.kubik.gr",
   nav: [
+    { href: "/studio", label: "Studio" },
     { href: "/docs", label: "Docs" },
     { href: "/playground", label: "Playground" },
     { href: "/pricing", label: "Pricing" },
