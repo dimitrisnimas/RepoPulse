@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { StudioBlock, StudioLayout } from "./studio.types";
 
 const blockSchema = z.object({ id: z.string().min(1), kind: z.enum(["heading","paragraph","divider","image","badge","spacer","card","visitors","social","markdown"]), title: z.string(), content: z.string().optional(), url: z.string().optional(), cardType: z.string().optional(), width: z.number().min(1).max(1200), align: z.enum(["left","center","right"]), spacing: z.number().min(0).max(96), visible: z.boolean(), group: z.string().optional() });
-export const studioLayoutSchema = z.object({ version: z.literal(1), name: z.string().min(1), username: z.string().min(1), theme: z.string().min(1), layout: z.enum(["single","two-column","grid","rows"]), gap: z.number().min(0).max(96), centered: z.boolean(), blocks: z.array(blockSchema).max(500) });
+export const studioLayoutSchema = z.object({ version: z.literal(1), name: z.string().min(1), username: z.string().min(1), theme: z.string().min(1), layout: z.enum(["single","two-column","grid","rows"]), gap: z.number().min(0).max(96), centered: z.boolean(), autoSpacing: z.boolean().default(true), autoSizing: z.boolean().default(true), snapToGrid: z.boolean().default(true), blocks: z.array(blockSchema).max(500) });
 const value = (text: string | undefined, layout: StudioLayout) => (text ?? "").replaceAll("{username}", layout.username);
 export function cardUrl(block: StudioBlock, layout: StudioLayout) {
   const type = block.cardType ?? "overview";

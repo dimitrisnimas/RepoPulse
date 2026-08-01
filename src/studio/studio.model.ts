@@ -25,7 +25,24 @@ export function studioReducer(history: StudioHistory, action: StudioAction): Stu
   if (action.type === "settings") return commit(history, { ...layout, ...action.patch });
   if (action.type === "update") return commit(history, { ...layout, blocks: layout.blocks.map((b) => b.id === action.id ? { ...b, ...action.patch } : b) });
   if (action.type === "add") { const blocks = [...layout.blocks]; blocks.splice(action.index ?? blocks.length, 0, action.block); return commit(history, { ...layout, blocks }); }
+  if (action.type === "addMany") { const blocks = [...layout.blocks]; blocks.splice(action.index ?? blocks.length, 0, ...action.blocks); return commit(history, { ...layout, blocks }); }
   if (action.type === "remove") return commit(history, { ...layout, blocks: layout.blocks.filter((b) => b.id !== action.id) });
   if (action.type === "duplicate") { const index = layout.blocks.findIndex((b) => b.id === action.id); if (index < 0) return history; const blocks = [...layout.blocks]; blocks.splice(index + 1, 0, { ...blocks[index], id: action.newId, title: `${blocks[index].title} copy` }); return commit(history, { ...layout, blocks }); }
   const from = layout.blocks.findIndex((b) => b.id === action.id); if (from < 0) return history; const blocks = [...layout.blocks]; const [block] = blocks.splice(from, 1); blocks.splice(Math.max(0, Math.min(action.to, blocks.length)), 0, block); return commit(history, { ...layout, blocks });
 }
+
+export function applyAutoLayout(layout: StudioLayout): StudioLayout {
+  const columns = layout.layout === "two-column" || layout.layout === "grid";
+  return {
+    ...layout,
+    gap: layout.autoSpacing ? (columns ? 12 : 16) : layout.gap,
+    blocks: layout.blocks.map((block) => ({
+      ...block,
+      spacing: layout.autoSpacing ? (block.kind === "spacer" ? 24 : block.kind === "heading" ? 20 : 12) : block.spacing,
+      align: layout.centered ? "center" : block.align,
+      width: layout.autoSizing && block.kind === "card" ? (columns ? 420 : 480) : block.width,
+    })),
+  };
+}
+
+export function snap(value: number, enabled: boolean, grid = 4) { return enabled ? Math.round(value / grid) * grid : value; }

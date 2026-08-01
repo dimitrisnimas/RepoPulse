@@ -25,6 +25,9 @@ export interface StudioLayout {
   layout: LayoutMode;
   gap: number;
   centered: boolean;
+  autoSpacing: boolean;
+  autoSizing: boolean;
+  snapToGrid: boolean;
   blocks: StudioBlock[];
 }
 
@@ -33,6 +36,7 @@ export type StudioAction =
   | { type: "set"; layout: StudioLayout }
   | { type: "update"; id: string; patch: Partial<StudioBlock> }
   | { type: "add"; block: StudioBlock; index?: number }
+  | { type: "addMany"; blocks: StudioBlock[]; index?: number }
   | { type: "remove"; id: string }
   | { type: "duplicate"; id: string; newId: string }
   | { type: "move"; id: string; to: number }

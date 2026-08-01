@@ -1,7 +1,7 @@
 import { createBlock } from "./studio.model";
 import type { StudioLayout } from "./studio.types";
 
-const base = (name: string): StudioLayout => ({ version: 1, name, username: "dimitrisnimas", theme: "github-dark", layout: "single", gap: 16, centered: false, blocks: [] });
+const base = (name: string): StudioLayout => ({ version: 1, name, username: "dimitrisnimas", theme: "github-dark", layout: "single", gap: 16, centered: false, autoSpacing: true, autoSizing: true, snapToGrid: true, blocks: [] });
 function profile(name: string, focus: string, cards: string[], extras: string[] = []): StudioLayout {
   return { ...base(name), centered: true, blocks: [createBlock("heading", { content: `Hi, I'm {username} 👋`, align: "center" }), createBlock("paragraph", { title: "About me", content: focus, align: "center" }), ...extras.map((x) => createBlock("badge", { title: x, content: x, url: `https://img.shields.io/badge/${encodeURIComponent(x)}-18181b?style=flat-square`, align: "center" })), ...cards.map((cardType) => createBlock("card", { title: cardType[0].toUpperCase() + cardType.slice(1), cardType, align: "center" })), createBlock("social", { align: "center" })] };
 }
