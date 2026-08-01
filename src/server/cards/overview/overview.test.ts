@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { overviewCacheKey } from "@/server/cache/cache-keys";
-import { escapeXml, formatNumber } from "@/server/cards/card-utils";
+import { escapeXml, formatNumber, safeColor } from "@/server/cards/card-utils";
 import { renderErrorCard, renderOverviewCard } from "./overview-card";
 import { calculateLanguages, mapOverviewData } from "./overview.mapper";
 import { githubUsernameSchema, parseOverviewQuery } from "./overview.schema";
@@ -44,6 +44,7 @@ describe("card utilities and themes", () => {
     expect(escapeXml(`<script a="x">&'</script>`)).toBe("&lt;script a=&quot;x&quot;&gt;&amp;&apos;&lt;/script&gt;");
     expect(formatNumber(12500, "en")).toMatch(/12[.,]5K/i);
   });
+  it("allows only six-digit hex colors in SVG attributes", () => { expect(safeColor("#ABCDEF")).toBe("#abcdef"); expect(safeColor(`red\" onload=\"alert(1)`)).toBe("#8b5cf6"); });
   it("falls back to the dark theme", () => expect(resolveTheme("unsafe").name).toBe("dark"));
 });
 

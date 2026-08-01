@@ -3,6 +3,7 @@ import type { CacheEntry, CacheResult } from "./cache.types";
 
 const globalCache = globalThis as typeof globalThis & { __repopulseCache?: Map<string, CacheEntry<string>> };
 const memory = globalCache.__repopulseCache ??= new Map();
+const MEMORY_CACHE_MAX_ENTRIES = 500;
 
 async function redis(command: Array<string | number>): Promise<unknown> {
   if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) return null;
@@ -33,5 +34,6 @@ export async function setCachedSvg(key: string, value: string, freshSeconds = en
   const now = Date.now();
   const entry: CacheEntry<string> = { value, freshUntil: now + freshSeconds * 1000, staleUntil: now + env.REPOPULSE_STALE_TTL_SECONDS * 1000 };
   memory.set(key, entry);
+  while (memory.size > MEMORY_CACHE_MAX_ENTRIES) memory.delete(memory.keys().next().value!);
   try { await redis(["SET", key, JSON.stringify(entry), "EX", env.REPOPULSE_STALE_TTL_SECONDS]); } catch { /* memory fallback remains available */ }
 }

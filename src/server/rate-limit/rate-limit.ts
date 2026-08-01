@@ -4,6 +4,7 @@ import type { RateLimitResult } from "./rate-limit.types";
 
 const globalRate = globalThis as typeof globalThis & { __repopulseRate?: Map<string, { count: number; reset: number }> };
 const memory = globalRate.__repopulseRate ??= new Map();
+const MEMORY_RATE_LIMIT_MAX_ENTRIES = 10_000;
 
 export function getRequestIp(headers: Headers): string {
   const vercelIp = headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
@@ -32,6 +33,7 @@ export async function checkRateLimit(identifier: string, now = Date.now()): Prom
   }
   const current = memory.get(identifier);
   if (!current || current.reset <= now) {
+    if (memory.size >= MEMORY_RATE_LIMIT_MAX_ENTRIES) for (const [key, value] of memory) { if (value.reset <= now || memory.size >= MEMORY_RATE_LIMIT_MAX_ENTRIES) memory.delete(key); else break; }
     memory.set(identifier, { count: 1, reset: now + windowSeconds * 1000 });
     return { allowed: true, remaining: limit - 1, retryAfter: windowSeconds };
   }

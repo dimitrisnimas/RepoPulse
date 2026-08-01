@@ -19,3 +19,7 @@ export function safeAvatarUrl(value: string): string | null {
     return null;
   }
 }
+
+export function safeColor(value: string | null | undefined, fallback = "#8b5cf6"): string {
+  return value && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : fallback;
+}

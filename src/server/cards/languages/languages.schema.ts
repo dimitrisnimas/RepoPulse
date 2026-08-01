@@ -10,5 +10,5 @@ export const languagesQuerySchema = z.object({
     return items;
   }),
   hide_progress: queryBoolean.default(false),
-});
+}).strict();
 export function parseLanguagesQuery(parameters: URLSearchParams) { return languagesQuerySchema.safeParse(Object.fromEntries(parameters.entries())); }

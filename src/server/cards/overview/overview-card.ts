@@ -1,7 +1,7 @@
 import { resolveTheme, type CardTheme } from "@/config/themes";
 import type { OverviewCardData } from "@/server/cards/card-model";
 import { svgDocument } from "@/server/cards/card-renderer";
-import { escapeXml, formatNumber, safeAvatarUrl, truncateText } from "@/server/cards/card-utils";
+import { escapeXml, formatNumber, safeAvatarUrl, safeColor, truncateText } from "@/server/cards/card-utils";
 import type { OverviewCardOptions } from "./overview.types";
 
 const icons: Record<string, string> = {
@@ -48,10 +48,10 @@ function renderLanguages(data: OverviewCardData, y: number, width: number, theme
   const available = width - 48;
   const bars = data.topLanguages.map((language) => {
     const barWidth = available * language.percentage / 100;
-    const result = `<rect x="${offset}" y="${y}" width="${barWidth}" height="7" fill="${language.color ?? theme.accent}"/>`;
+    const result = `<rect x="${offset}" y="${y}" width="${barWidth}" height="7" fill="${safeColor(language.color, theme.accent)}"/>`;
     offset += barWidth; return result;
   }).join("");
-  const labels = data.topLanguages.slice(0, width < 430 ? 3 : 5).map((language, index) => `<circle cx="${24 + index * ((width - 48) / Math.min(data.topLanguages.length, width < 430 ? 3 : 5))}" cy="${y + 30}" r="3" fill="${language.color ?? theme.accent}"/><text x="${31 + index * ((width - 48) / Math.min(data.topLanguages.length, width < 430 ? 3 : 5))}" y="${y + 34}" class="muted" font-size="10">${escapeXml(truncateText(language.name, 12))} ${language.percentage}%</text>`).join("");
+  const labels = data.topLanguages.slice(0, width < 430 ? 3 : 5).map((language, index) => `<circle cx="${24 + index * ((width - 48) / Math.min(data.topLanguages.length, width < 430 ? 3 : 5))}" cy="${y + 30}" r="3" fill="${safeColor(language.color, theme.accent)}"/><text x="${31 + index * ((width - 48) / Math.min(data.topLanguages.length, width < 430 ? 3 : 5))}" y="${y + 34}" class="muted" font-size="10">${escapeXml(truncateText(language.name, 12))} ${language.percentage}%</text>`).join("");
   return `<clipPath id="lang"><rect x="24" y="${y}" width="${available}" height="7" rx="3.5"/></clipPath><g clip-path="url(#lang)">${bars}</g>${labels}`;
 }
 
