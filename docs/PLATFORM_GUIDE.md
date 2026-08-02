@@ -27,3 +27,7 @@ GraphQL queries request public fields only and paginate owned public repositorie
 **Why are internal metrics not public?** Operational counters can reveal traffic and failure patterns; the endpoint shares cron bearer protection and disables caching.
 
 **How are deploy previews created?** Vercel's Git integration creates them after CI. Production promotion should be gated by protected-branch checks.
+
+## Private activity setup
+
+Create a fine-grained PAT owned by `dimitrisnimas`, select only the private repositories that may appear publicly, and grant read-only repository Contents access. Set `REPOPULSE_PRIVATE_GITHUB_TOKEN` in Vercel and set `REPOPULSE_PRIVATE_REPOSITORIES` to comma-separated `dimitrisnimas/repository` values. Embed `![Private activity](https://repopulse.kubik.gr/api/cards/private-activity?theme=midnight&width=680)` in the profile README. The card reports complete default-branch commit activity rather than a rolling date window. The three-hour fresh cache keeps GitHub traffic low.

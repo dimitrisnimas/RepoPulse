@@ -1,0 +1,11 @@
+import { resolveTheme } from "@/config/themes";
+import { svgDocument } from "@/server/cards/card-renderer";
+import { escapeXml, formatNumber, truncateText } from "@/server/cards/card-utils";
+import type { PrivateActivityData, PrivateActivityOptions } from "./private-activity.types";
+export function renderPrivateActivityCard(data: PrivateActivityData, options: PrivateActivityOptions) {
+  const { theme }=resolveTheme(options.theme); const width=options.width; const rowHeight=44; const height=102+Math.max(1,data.repositories.length)*rowHeight+28; const total=data.repositories.reduce((sum,repo)=>sum+repo.totalCommits,0);
+  let content=`<text x="24" y="31" class="title" font-size="17">Private Build Activity</text><text x="24" y="52" class="muted" font-size="10">@dimitrisnimas · complete repository activity · metadata only</text><text x="${width-24}" y="31" text-anchor="end" class="title" font-size="15">${escapeXml(formatNumber(total,options.locale))} commits</text><text x="${width-24}" y="50" text-anchor="end" class="accent" font-size="10">${data.repositories.length} selected repositories</text>`;
+  content+=data.repositories.map((repo,index)=>{const y=83+index*rowHeight;const date=repo.lastCommitAt?new Intl.DateTimeFormat(options.locale,{year:"numeric",month:"short",day:"2-digit",timeZone:"UTC"}).format(new Date(repo.lastCommitAt)):"No commits";return `<rect x="24" y="${y-17}" width="${width-48}" height="36" rx="8" fill="${theme.progressBackground}"/><text x="36" y="${y}" class="title" font-size="11">${escapeXml(truncateText(repo.name,34))}</text><text x="36" y="${y+13}" class="muted" font-size="8">${escapeXml(repo.language??"No primary language")}</text><text x="${width-150}" y="${y+2}" text-anchor="end" class="text" font-size="10">${escapeXml(formatNumber(repo.totalCommits,options.locale))} commits</text><text x="${width-36}" y="${y+2}" text-anchor="end" class="muted" font-size="9">${escapeXml(date)}</text>`}).join("");
+  if(data.unavailable)content+=`<text x="24" y="${height-16}" class="muted" font-size="8">${data.unavailable} configured repositories temporarily unavailable</text>`;
+  return svgDocument({width,height,theme,hideBorder:options.hideBorder,title:"Dimitris Nimas private repository activity",description:`Activity metadata for ${data.repositories.length} selected private repositories; no source code is read`,content});
+}

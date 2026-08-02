@@ -20,7 +20,7 @@ function response(request: Request, svg: string, status: number, cache: "HIT" | 
   return new NextResponse(svg, { status, headers });
 }
 
-export async function handleCardRoute<T>({ request, parse, cacheKey, width, theme, freshSeconds, generate }: {
+export async function handleCardRoute<T>({ request, parse, cacheKey, width, theme, freshSeconds, generate, identityParameter = "username" }: {
   request: Request;
   parse: (parameters: URLSearchParams) => ZodSafeParseResult<T>;
   cacheKey: (input: T) => string;
@@ -28,13 +28,14 @@ export async function handleCardRoute<T>({ request, parse, cacheKey, width, them
   theme: (input: T) => string;
   freshSeconds: number;
   generate: (input: T) => Promise<string>;
+  identityParameter?: string | null;
 }) {
   const context = createRequestContext(); const url = new URL(request.url); incrementMetric("requests");
   const queryError = validatePublicQuery(url);
   if (queryError) { incrementMetric("errors"); return response(request, renderErrorCard(queryError), 400, "MISS", context.requestId); }
   const parsed = parse(url.searchParams);
   if (!parsed.success) {
-    const missing = !url.searchParams.get("username");
+    const missing = identityParameter ? !url.searchParams.get(identityParameter) : false;
     const message = missing ? "Add a GitHub username to generate this card." : parsed.error.issues[0]?.message ?? "Invalid card parameters.";
     incrementMetric("errors"); return response(request, renderErrorCard(message), 400, "MISS",context.requestId);
   }

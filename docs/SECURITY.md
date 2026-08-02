@@ -19,3 +19,7 @@ Report vulnerabilities privately to the repository owner. Include reproduction s
 ## CodeQL availability
 
 The CodeQL workflow uses the Node 24-based `github/codeql-action@v4` and runs automatically for public repositories. GitHub does not accept CodeQL uploads from private repositories unless GitHub Code Security is enabled. If this private repository is upgraded and Code Security is enabled under **Settings → Advanced Security**, remove the visibility condition from `.github/workflows/codeql.yml`.
+
+## Private activity card
+
+`/api/cards/private-activity` is an intentionally public image for `@dimitrisnimas`, backed by a separate fine-grained token and a fixed server-side repository allowlist. Configure the token for **Selected repositories only**, choose only the repositories intended for the card, and grant read-only access. Commit history requires repository Contents read permission even though RepoPulse's GraphQL query requests no blobs, trees, files, diffs, source text, or commit messages. The card publishes repository names, commit counts, latest commit dates, and primary languages; never add a repository whose name or activity must remain confidential.

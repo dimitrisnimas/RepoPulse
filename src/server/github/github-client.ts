@@ -5,14 +5,14 @@ import { withRetry } from "@/server/reliability/retry-policy";
 import { GitHubError } from "./github-errors";
 
 interface GraphQLErrorPayload { message?: string; type?: string }
-export async function githubGraphql<T>(query: string, variables: Record<string, string | null | number>): Promise<T> {
-  if (!env.GITHUB_TOKEN) throw new GitHubError("unavailable", "GitHub integration is not configured", 503);
+export async function githubGraphql<T>(query: string, variables: Record<string, string | null | number>, token = env.GITHUB_TOKEN): Promise<T> {
+  if (!token) throw new GitHubError("unavailable", "GitHub integration is not configured", 503);
   if (!allowCircuitRequest()) throw new GitHubError("unavailable", "GitHub circuit is temporarily open", 503);
   const started = performance.now(); incrementMetric("githubRequests");
   try {
     return await withRetry(async () => {
       let response: Response;
-      try { response = await fetch("https://api.github.com/graphql", { method: "POST", headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, "Content-Type": "application/json", "User-Agent": `RepoPulse/${env.APP_VERSION}` }, body: JSON.stringify({ query, variables }), cache: "no-store", signal: AbortSignal.timeout(env.REPOPULSE_GITHUB_TIMEOUT_MS) }); }
+      try { response = await fetch("https://api.github.com/graphql", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "User-Agent": `RepoPulse/${env.APP_VERSION}` }, body: JSON.stringify({ query, variables }), cache: "no-store", signal: AbortSignal.timeout(env.REPOPULSE_GITHUB_TIMEOUT_MS) }); }
       catch { throw new GitHubError("unavailable", "GitHub API request timed out", 503); }
       if (response.status === 401 || response.status === 403) { const limited = response.headers.get("x-ratelimit-remaining") === "0"; throw new GitHubError(limited ? "rate_limited" : "unauthorized", limited ? "GitHub rate limit reached" : "GitHub request was rejected", limited ? 429 : 401); }
       if (!response.ok) throw new GitHubError("unavailable", "GitHub API is temporarily unavailable", response.status);
