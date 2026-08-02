@@ -6,6 +6,7 @@ import { mapOverviewData } from "@/server/cards/overview/overview.mapper";
 import { overviewQuerySchema, parseOverviewQuery } from "@/server/cards/overview/overview.schema";
 import type { OverviewCardOptions } from "@/server/cards/overview/overview.types";
 import { getPublicGitHubProfile } from "@/server/github/github-service";
+import { embedGitHubAvatar } from "@/server/github/github-avatar";
 
 export const runtime = "nodejs";
 type Input = ReturnType<typeof overviewQuerySchema.parse>;
@@ -18,6 +19,6 @@ export function GET(request: Request) {
     width: (input) => input.width,
     theme: (input) => input.theme,
     cacheKey: (input) => overviewCacheKey(options(input)),
-    generate: async (input) => renderOverviewCard(mapOverviewData(await getPublicGitHubProfile(input.username)), options(input)),
+    generate: async (input) => {const aggregate=await getPublicGitHubProfile(input.username);const data=mapOverviewData(aggregate);if(input.show_avatar)data.avatarUrl=await embedGitHubAvatar(data.avatarUrl)??"";return renderOverviewCard(data,options(input));},
   });
 }

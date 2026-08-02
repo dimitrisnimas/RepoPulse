@@ -12,6 +12,7 @@ export function formatNumber(value: number, locale = "en"): string {
 }
 
 export function safeAvatarUrl(value: string): string | null {
+  if (value.length <= 410_000 && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(value)) return value;
   try {
     const url = new URL(value);
     return url.protocol === "https:" && (url.hostname === "avatars.githubusercontent.com" || url.hostname.endsWith(".githubusercontent.com")) ? url.toString() : null;

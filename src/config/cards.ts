@@ -1,4 +1,4 @@
-export const OVERVIEW_CARD_VERSION = "overview-v1";
+export const OVERVIEW_CARD_VERSION = "overview-v2";
 export const CARD_WIDTH_MIN = 320;
 export const CARD_WIDTH_MAX = 900;
 export const CARD_WIDTH_DEFAULT = 480;
