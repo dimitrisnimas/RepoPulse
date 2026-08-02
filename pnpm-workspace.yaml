@@ -2,10 +2,6 @@ overrides:
   sharp: 0.35.0
   postcss: 8.5.25
 
-# Remove this after regenerating and committing pnpm-lock.yaml in an environment
-# with trusted npm registry TLS. Exact overrides keep CI/deploy resolution deterministic.
-frozenLockfile: false
-
 allowBuilds:
   sharp: true
   unrs-resolver: true
