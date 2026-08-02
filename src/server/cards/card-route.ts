@@ -11,7 +11,7 @@ import{env}from"@/config/env";import{acquireDistributedLock,waitForDistributedRe
 import { incrementMetric, observeMetric } from "@/server/observability/metrics";
 import { validatePublicQuery } from "@/server/security/request-security";
 
-const responseHeaders = { "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()", "Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; img-src https://avatars.githubusercontent.com https://*.githubusercontent.com data:; sandbox" };
+const responseHeaders = { "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()", "Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; img-src https://repopulse.kubik.gr https://avatars.githubusercontent.com https://*.githubusercontent.com data:; sandbox" };
 const pending = new Map<string, Promise<string>>();
 function response(request: Request, svg: string, status: number, cache: "HIT" | "MISS" | "STALE", requestId:string,retryAfter?: number) {
   const etag = `"${createHash("sha256").update(svg).digest("base64url")}"`;
