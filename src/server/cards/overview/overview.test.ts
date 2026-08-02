@@ -69,6 +69,7 @@ describe("overview mapping and rendering", () => {
     expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
     expect(svg).toContain("<title");
     expect(svg).toContain("Dimitris Nimas");
+    expect(svg).not.toContain("PUBLIC PROFILE");
     expect(svg).not.toContain("<script");
   });
   it("renders safe SVG error cards", () => {

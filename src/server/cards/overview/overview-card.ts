@@ -31,8 +31,7 @@ export function renderOverviewCard(data: OverviewCardData, options: OverviewCard
   const cellWidth = (width - 48) / columns;
   const header = `${avatar ? `<defs><clipPath id="avatar"><circle cx="48" cy="45" r="24"/></clipPath></defs><image href="${escapeXml(avatar)}" x="24" y="21" width="48" height="48" clip-path="url(#avatar)" preserveAspectRatio="xMidYMid slice"/>` : ""}
   <text x="${headerX}" y="37" class="title" font-size="${compact ? 16 : 18}">${escapeXml(truncateText(data.displayName || data.username, compact ? 23 : 32))}</text>
-  <text x="${headerX}" y="57" class="muted" font-size="12">@${escapeXml(truncateText(data.username, 39))}</text>
-  <circle cx="${width - 28}" cy="29" r="4" fill="${theme.accent}"/><text x="${width - 40}" y="52" text-anchor="end" class="muted" font-size="9">PUBLIC PROFILE</text>`;
+  <text x="${headerX}" y="57" class="muted" font-size="12">@${escapeXml(truncateText(data.username, 39))}</text>`;
   const metricContent = metrics.map(([key, label, value], index) => {
     const x = 24 + (index % columns) * cellWidth; const y = 105 + Math.floor(index / columns) * 55;
     return `${options.showIcons ? icon(String(key), x, y - 15, theme.icon) : ""}<text x="${x + (options.showIcons ? 20 : 0)}" y="${y - 4}" class="muted label">${escapeXml(String(label))}</text><text x="${x}" y="${y + 20}" class="text value">${escapeXml(formatNumber(Number(value), options.locale))}</text>`;
