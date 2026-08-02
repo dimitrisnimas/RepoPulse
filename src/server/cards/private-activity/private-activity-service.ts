@@ -6,7 +6,7 @@ import type { PrivateActivityData, PrivateRepositoryActivity } from "./private-a
 
 const owner = "dimitrisnimas";
 const repositoryName = /^[A-Za-z0-9._-]{1,100}$/;
-const privateConfigSchema=z.object({token:z.string().min(1),repositories:z.string().min(1).max(1200),about:z.string().max(240).default("Building private products, APIs and developer tools with a focus on reliability, performance and thoughtful design.")});
+const privateConfigSchema=z.object({token:z.string().min(1),repositories:z.string().min(1).max(1200),about:z.string().max(240).default("Building private products, APIs and developer tools with a focus on reliability and performance and thoughtful design.")});
 const query = `query PrivateRepositoryActivity($owner:String!,$name:String!){repository(owner:$owner,name:$name){name primaryLanguage{name color} defaultBranchRef{target{... on Commit{history(first:1){totalCount nodes{committedDate}}}}}}}`;
 interface Response { repository: null | { name: string; primaryLanguage: null | { name: string; color: string | null }; defaultBranchRef: null | { target: { history?: { totalCount: number; nodes: Array<{ committedDate: string }> } } } } }
 
