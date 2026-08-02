@@ -39,7 +39,10 @@ export async function handleCardRoute<T>({ request, parse, cacheKey, width, them
     const message = missing ? "Add a GitHub username to generate this card." : parsed.error.issues[0]?.message ?? "Invalid card parameters.";
     incrementMetric("errors"); return response(request, renderErrorCard(message), 400, "MISS",context.requestId);
   }
-  const key = cacheKey(parsed.data); const cached = await getCachedSvg(key);
+  let key: string;
+  try { key = cacheKey(parsed.data); }
+  catch (error) { incrementMetric("errors"); logError("card_configuration_failed", { requestId: context.requestId, route: url.pathname, errorCategory: error instanceof Error ? error.name : "configuration_error" }); return response(request, renderErrorCard("This card is not configured correctly.", width(parsed.data), theme(parsed.data)), 503, "MISS", context.requestId); }
+  const cached = await getCachedSvg(key);
   void rememberCardUrl(request.url);
   if (cached?.fresh) { incrementMetric("cacheHit"); return response(request, cached.value, 200, "HIT",context.requestId); }
   const forceRefresh=request.headers.get("x-repopulse-refresh")==="cron";
@@ -59,9 +62,9 @@ export async function handleCardRoute<T>({ request, parse, cacheKey, width, them
   } catch (error) {
     if (cached) { incrementMetric("cacheStale"); return response(request, cached.value, 200, "STALE",context.requestId); }
     const github = error instanceof GitHubError ? error : null;
-    const status = github?.status ?? 500;
+    const status = github?.status && github.status >= 400 && github.status < 500 ? github.status : 503;
     const message = github?.category === "not_found" ? "GitHub user not found." : github?.category === "rate_limited" ? "GitHub rate limit reached. Please try again later." : status === 503 ? "GitHub is temporarily unavailable." : "The card could not be rendered.";
-    logError("card_request_failed", { requestId: context.requestId, route: url.pathname, cacheState: "MISS", errorCategory: github?.category ?? "render_error" });
+    logError("card_request_failed", { requestId: context.requestId, route: url.pathname, cacheState: "MISS", errorCategory: github?.category ?? "render_error", errorName: error instanceof Error ? error.name : "UnknownError", errorMessage: error instanceof Error ? error.message.slice(0,160) : "Unknown failure" });
     incrementMetric("errors"); return response(request, renderErrorCard(message, width(parsed.data), theme(parsed.data)), status, "MISS",context.requestId, status === 429 ? 60 : undefined);
   }
 }
