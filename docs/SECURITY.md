@@ -11,3 +11,7 @@ Revoke a token immediately if it appears in source, logs, screenshots, build art
 ## Reporting
 
 Report vulnerabilities privately to the repository owner. Include reproduction steps and affected routes; do not include real credentials or private GitHub data.
+
+## Dependency overrides
+
+`pnpm-workspace.yaml` pins patched transitive versions of `sharp` and `postcss` inherited from Next.js. Regenerate and commit `pnpm-lock.yaml` from a machine with a trusted npm registry TLS chain, verify `pnpm why sharp` reports `0.35.0`, verify Next's PostCSS reports at least `8.5.18`, then restore frozen-lockfile installs.
