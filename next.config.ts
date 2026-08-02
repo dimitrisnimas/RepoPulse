@@ -4,9 +4,6 @@ import path from "node:path";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
-  outputFileTracingIncludes: {
-    "/api/cards/private-activity": ["./public/RepoPulse.png"],
-  },
   turbopack: {
     root: path.resolve(__dirname),
   },
