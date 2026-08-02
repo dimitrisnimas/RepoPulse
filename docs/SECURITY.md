@@ -15,3 +15,7 @@ Report vulnerabilities privately to the repository owner. Include reproduction s
 ## Dependency overrides
 
 `pnpm-workspace.yaml` pins patched transitive versions of `sharp` and `postcss` inherited from Next.js. Regenerate and commit `pnpm-lock.yaml` from a machine with a trusted npm registry TLS chain, verify `pnpm why sharp` reports `0.35.0`, verify Next's PostCSS reports at least `8.5.18`, then restore frozen-lockfile installs.
+
+## CodeQL availability
+
+The CodeQL workflow uses the Node 24-based `github/codeql-action@v4` and runs automatically for public repositories. GitHub does not accept CodeQL uploads from private repositories unless GitHub Code Security is enabled. If this private repository is upgraded and Code Security is enabled under **Settings → Advanced Security**, remove the visibility condition from `.github/workflows/codeql.yml`.
