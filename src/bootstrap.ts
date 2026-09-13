@@ -1,24 +1,9 @@
-import "reflect-metadata";
 import { randomUUID } from "node:crypto";
 import { Logger } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { NextFunction, Request, Response } from "express";
-import { AppModule } from "./app.module";
-import type { Config } from "./config";
 
-export async function createApplication(
-  config: Config,
-  transport: typeof fetch = fetch,
-) {
-  const app = await NestFactory.create<NestExpressApplication>(
-    AppModule.register(config, transport),
-    {
-      bodyParser: false,
-      logger: ["error", "warn"],
-      abortOnError: false,
-    },
-  );
+export function configureApplication(app: NestExpressApplication) {
   const server = app.getHttpAdapter().getInstance();
   server.disable("x-powered-by");
   server.disable("etag");
@@ -50,5 +35,4 @@ export async function createApplication(
     });
     next();
   });
-  return app;
 }
