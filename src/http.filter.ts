@@ -6,8 +6,8 @@ import {
   Logger,
 } from "@nestjs/common";
 import type { Request, Response } from "express";
-import { ServiceError } from "./errors";
-import { renderError } from "./render";
+import { ServiceError } from "./errors.js";
+import { renderError } from "./render.js";
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {

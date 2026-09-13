@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { AppModule } from "./app.module";
-import { configureApplication } from "./bootstrap";
-import { readConfig } from "./config";
+import { AppModule } from "./app.module.js";
+import { configureApplication } from "./bootstrap.js";
+import { readConfig } from "./config.js";
 
 async function bootstrap() {
   const config = readConfig();

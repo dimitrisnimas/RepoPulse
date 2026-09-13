@@ -16,7 +16,7 @@
     "format": "prettier --write src README.md ARCHITECTURE.md package.json tsconfig.json eslint.config.mjs .github vercel.json",
     "format:check": "prettier --check src README.md ARCHITECTURE.md package.json tsconfig.json eslint.config.mjs .github vercel.json",
     "check": "npm run lint && npm run typecheck && npm run build && npm run format:check",
-    "example": "npm run build && node scripts/example.cjs"
+    "example": "npm run build && node scripts/example.mjs"
   },
   "dependencies": {
     "@nestjs/common": "12.0.1",
@@ -39,5 +39,6 @@
     "prettier": "^3.0.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.70.0"
-  }
+  },
+  "type": "module"
 }

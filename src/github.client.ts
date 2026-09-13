@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Config, RepositoryRef } from "./config";
-import { retrySeconds, ServiceError } from "./errors";
+import type { Config, RepositoryRef } from "./config.js";
+import { retrySeconds, ServiceError } from "./errors.js";
 
 const repositorySchema = z.object({
   nameWithOwner: z.string().max(140),

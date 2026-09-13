@@ -29,7 +29,9 @@ src/main.ts
 ## Decisions
 
 **NestJS + Node on Vercel.** Retains the requested backend framework while removing
-Next/React. Native Vercel detection uses `src/main.ts`; helper modules must not
+Next/React. The application uses native ESM (`type: module`, TypeScript NodeNext,
+and `.js` relative imports) to load NestJS 12 without relying on `require(esm)`.
+Native Vercel detection uses `src/main.ts`; helper modules must not
 shadow recognized entrypoint names such as `src/app.ts`. No custom serverless
 wrapper, per-request Nest bootstrap, Edge runtime, or persistent process assumption.
 

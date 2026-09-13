@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import { Controller, Get, Inject, Req, Res } from "@nestjs/common";
 import type { Request, Response } from "express";
-import { ActivityService } from "./activity.service";
-import { CONFIG, type Config } from "./config";
-import { renderActivity } from "./render";
-import { Access } from "./security";
+import { ActivityService } from "./activity.service.js";
+import { CONFIG, type Config } from "./config.js";
+import { renderActivity } from "./render.js";
+import { Access } from "./security.js";
 
 @Controller()
 export class ActivityController {

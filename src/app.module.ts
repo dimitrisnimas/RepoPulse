@@ -1,11 +1,11 @@
 import { DynamicModule, Module } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
-import { ActivityController } from "./activity.controller";
-import { ActivityService } from "./activity.service";
-import { CONFIG, type Config } from "./config";
-import { GitHubClient } from "./github.client";
-import { HttpErrorFilter } from "./http.filter";
-import { OperatorGuard } from "./security";
+import { ActivityController } from "./activity.controller.js";
+import { ActivityService } from "./activity.service.js";
+import { CONFIG, type Config } from "./config.js";
+import { GitHubClient } from "./github.client.js";
+import { HttpErrorFilter } from "./http.filter.js";
+import { OperatorGuard } from "./security.js";
 
 @Module({})
 export class AppModule {

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { GitHubClient, type RepositoryActivity } from "./github.client";
-import { ServiceError } from "./errors";
+import { GitHubClient, type RepositoryActivity } from "./github.client.js";
+import { ServiceError } from "./errors.js";
 
 export interface ActivityData {
   repositories: RepositoryActivity[];

@@ -8,8 +8,8 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { Request } from "express";
-import { CONFIG, type Config } from "./config";
-import { ServiceError } from "./errors";
+import { CONFIG, type Config } from "./config.js";
+import { ServiceError } from "./errors.js";
 
 const ACCESS = "repopulse:access";
 type Access = "health" | "svg";

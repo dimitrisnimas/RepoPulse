@@ -1,5 +1,5 @@
-import type { ActivityData } from "./activity.service";
-import type { Config } from "./config";
+import type { ActivityData } from "./activity.service.js";
+import type { Config } from "./config.js";
 
 export function escapeXml(value: string): string {
   return value
