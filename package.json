@@ -1,37 +1,43 @@
 {
   "name": "repopulse",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "A personal NestJS API for one GitHub private activity SVG card.",
+  "engines": {
+    "node": "22.x"
+  },
+  "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:stress": "node scripts/stress.mjs",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "dev": "npm run build && node --watch --env-file-if-exists=.env dist/main.js",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "format": "prettier --write src README.md ARCHITECTURE.md package.json tsconfig.json eslint.config.mjs .github vercel.json",
+    "format:check": "prettier --check src README.md ARCHITECTURE.md package.json tsconfig.json eslint.config.mjs .github vercel.json",
+    "check": "npm run lint && npm run typecheck && npm run build && npm run format:check",
+    "example": "npm run build && node scripts/example.cjs"
   },
   "dependencies": {
-    "lucide-react": "^0.468.0",
-    "next": "16.2.12",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "^4.4.3"
+    "@nestjs/common": "12.0.1",
+    "@nestjs/core": "12.0.1",
+    "@nestjs/platform-express": "12.0.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.6.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "multer@<2.3.0": "2.3.0",
+      "brace-expansion@>=5.0.0 <5.0.9": "5.0.9"
+    }
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.12",
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.9",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^4.1.10"
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.10.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.70.0"
   }
 }

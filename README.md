@@ -1,151 +1,184 @@
 # RepoPulse
 
-Beautiful GitHub metrics. Built to stay online.
+One GitHub activity card. A small personal NestJS API for selected repositories
+across a personal account and an organization. Public source, private access by
+default. No website, accounts, database, Redis, or scheduled jobs.
 
-RepoPulse is a private-source, free GitHub statistics card service. It retrieves public profile data through GitHub GraphQL, normalizes the result, renders a standalone SVG, and serves it through a cache-aware public endpoint.
+![Example activity card with fictional repositories](docs/example.svg)
 
-## README usage
+The card shows repository names, optional descriptions, primary languages,
+default-branch commit counts, and latest commit dates. Both public and private
+repositories are supported. The example above contains synthetic data.
+
+## Run locally
+
+Use Node.js 22 and pnpm 10.32.1.
+
+```sh
+pnpm install --frozen-lockfile
+cp .env.example .env
+# Fill in .env using the instructions below.
+pnpm build
+pnpm start
+```
+
+Generate a separate operator key with:
+
+```sh
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+`pnpm dev` builds once and watches the compiled application. Run `pnpm build` after
+TypeScript changes, or `pnpm exec tsc --watch` in another terminal. The application
+loads `.env` locally; it never writes credentials or generated cards to disk.
+
+## GitHub access
+
+Create a **fine-grained personal access token** for your personal account. Choose
+**Only select repositories**, select the repositories for this card, and grant
+repository **Contents: read-only**. Metadata read is included. No write, Issues,
+Pull requests, administration, or organization-members permissions are needed.
+
+For organization repositories, create a second fine-grained PAT with that
+organization as its resource owner. Obtain organization approval if required.
+Configure its actual GitHub login, not its display name. A token restricted to your
+personal account does not also authorize private organization repositories.
+[GitHub's token setup guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
+
+RepoPulse routes each repository to its owner's credential and never falls back
+to the other token. It fetches commit counts/dates, not source, diffs, messages, or
+authors. **Contents read still grants the credential source-code access**; limit
+repository selection accordingly. Set expiration dates and rotate PATs in deployment
+settings. If your organization requires a GitHub App, use that authentication model
+instead of broadening PAT permissions; App authentication is not implemented here.
+
+## Configuration
+
+| Variable                     | Meaning                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `REPOPULSE_API_KEY`          | Required separate random operator secret, at least 43 base64url/hex characters                                 |
+| `GITHUB_PERSONAL_OWNER`      | Required personal GitHub login                                                                                 |
+| `GITHUB_PERSONAL_TOKEN`      | Required fine-grained personal PAT                                                                             |
+| `GITHUB_ORG_OWNER`           | Optional organization GitHub login; requires its token                                                         |
+| `GITHUB_ORG_TOKEN`           | Optional organization PAT; requires its owner                                                                  |
+| `REPOPULSE_REPOSITORIES`     | Required JSON array of 1–12 unique entries: `{"repository":"owner/repo","description":"Optional description"}` |
+| `REPOPULSE_PUBLISH_ACTIVITY` | `false` by default; only literal `true` publishes the SVG                                                      |
+| `REPOPULSE_TITLE`            | Card heading; default `Private activity`                                                                       |
+| `REPOPULSE_ABOUT`            | Short introduction; default `A snapshot of the projects I am building.`                                        |
+| `REPOPULSE_THEME`            | `dark` (default) or `light`                                                                                    |
+| `PORT`                       | Local port; default `3000`                                                                                     |
+
+Configuration is validated on startup. Unknown owners, duplicate references,
+invalid names, excess repositories, and half-configured organization credentials
+are rejected. Appearance and repository selection are deployment settings;
+there are no request parameters. Keep sensitive repository names/descriptions in
+the environment, not in the public source repository.
+
+## API
+
+| Method and path      | Access                                          | Output                                     |
+| -------------------- | ----------------------------------------------- | ------------------------------------------ |
+| `GET /health`        | Public                                          | Dependency-free liveness JSON              |
+| `GET /activity.svg`  | Operator, unless publication explicitly enabled | One fixed 760px-wide SVG                   |
+| `GET /activity.json` | Always operator                                 | The same activity data and fetch timestamp |
+
+HEAD follows the same access policy. All query parameters are rejected. Unknown
+routes, including all old `/api/cards/*` routes, return 404.
+
+```sh
+# API_KEY below is the operator key, never a GitHub token.
+curl --fail-with-body -H "Authorization: Bearer $API_KEY" \
+  http://localhost:3000/activity.svg -o activity.svg
+
+curl --fail-with-body -H "Authorization: Bearer $API_KEY" \
+  http://localhost:3000/activity.json
+```
+
+No bearer key in URLs, README source, or client code. Errors preserve HTTP status:
+400 for query parameters, 401 for operator authentication, 404 for missing or
+inaccessible repositories, 502 for upstream failures, 503 for GitHub credentials,
+permissions or rate limits, 504 for the overall deadline, and 500 for unexpected
+rendering failures. Rate-limit responses include Retry-After. SVG errors contain
+no repository details; JSON errors contain a stable code and request ID, never raw
+GitHub errors. A partial GitHub failure fails the whole card rather than showing
+an incomplete total.
+
+## Embed in a README
+
+To deliberately publish the card, set `REPOPULSE_PUBLISH_ACTIVITY=true` and redeploy:
 
 ```md
-![RepoPulse GitHub Stats](https://repopulse.kubik.gr/api/cards/overview?username=dimitrisnimas)
-![Top Languages](https://repopulse.kubik.gr/api/cards/languages?username=dimitrisnimas)
-![Contributions](https://repopulse.kubik.gr/api/cards/contributions?username=dimitrisnimas)
-![GitHub Streak](https://repopulse.kubik.gr/api/cards/streak?username=dimitrisnimas)
-![Repository](https://repopulse.kubik.gr/api/cards/repository?owner=dimitrisnimas&repo=repository-name)
-![Developer Profile](https://repopulse.kubik.gr/api/cards/profile?username=dimitrisnimas)
-![Pinned Repositories](https://repopulse.kubik.gr/api/cards/pinned?username=dimitrisnimas)
+![Private activity](https://your-project.vercel.app/activity.svg)
 ```
 
-Example URL:
+**This publishes every configured repository's name, description, primary language,
+commit count, and latest commit date, plus the card heading/introduction.** Review
+all of those fields before enabling it. JSON stays authenticated. An obscure image
+URL does not make data private.
 
-```text
-https://repopulse.kubik.gr/api/cards/overview?username=dimitrisnimas&theme=github-dark&width=520&show_avatar=true
+GitHub cannot fetch an image that requires your bearer header. Confidential activity
+therefore stays behind the protected endpoint and cannot also be a live, publicly
+readable README image. Downloading and committing the SVG publishes its contents
+too. GitHub's image proxy and other viewers may retain previously published copies
+after you disable publication. [GitHub image proxy documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-anonymized-urls).
+
+## Metric and cache semantics
+
+- Commits are the history reachable from each repository's **current default
+  branch**, across all authors and all time. They are not personal contributions.
+  Shared history across repositories may be counted more than once in the total.
+- Last commit is the latest history node's committed date, not push time.
+- Counts of a million or more use compact notation on the SVG; JSON retains exact counts.
+- Empty repositories show zero commits and no last date; inaccessible repositories
+  are errors, not zeros. Rows sort by latest commit date, then repository name.
+- One query batch per configured owner, normally one or two GitHub requests.
+  Requests have a six-second timeout and one transient retry within a fifteen-second
+  overall deadline. Response bodies and configured work are bounded.
+- One five-minute in-memory snapshot and in-flight deduplication per instance.
+  Failures are briefly backed off; quota failures honor Retry-After. No stale result
+  is served after an expired snapshot fails to refresh.
+- Protected output and errors are `private, no-store`. Public SVGs get a five-minute
+  CDN lifetime and ETags. Origin and CDN TTLs can add up; README caching can add more.
+  Memory does not persist or coordinate across serverless instances.
+
+## Deploy to Vercel
+
+1. Import the repository with the **NestJS** framework preset and Node.js **22.x**.
+   Remove any previous Next.js output-directory override; use framework defaults.
+2. Add the environment variables above. Paste JSON and secrets as values without
+   the shell quotes used in `.env`. Keep production credentials out of untrusted
+   preview deployments. Tests/builds do not need GitHub secrets.
+3. Use the checked-in frozen install/build configuration. There is no cron, storage
+   service, font asset, or writable filesystem requirement.
+4. Verify `/health`, unauthorized `/activity.svg`, authenticated SVG/JSON, and both
+   owner scopes. Enable public SVG publication only after reviewing the output.
+
+The entrypoint is `src/main.ts`; Vercel's native Nest integration runs the app as
+one Node function. The configured duration is 30 seconds, above the upstream work
+deadline. [NestJS on Vercel](https://vercel.com/docs/frameworks/backend/nestjs).
+
+Migrating an existing deployment is a breaking change: update README URLs, remove
+the old cron and Redis settings, and rotate/replace old credentials. Rolling back
+to the old public private-activity endpoint can republish metadata; do not restore
+its private token as part of rollback.
+
+## Development and security
+
+**Existing deployments:** a credential was found in old Git revisions. Review the
+[historical exposure notice](SECURITY.md#historical-credential-exposure) and revoke
+the old token if necessary before reusing this deployment.
+
+```sh
+pnpm check
+pnpm audit --audit-level=high
+pnpm example
 ```
 
-## Local development
+The repository intentionally does not include tests. `pnpm check` runs lint,
+typechecking, a production build, and formatting checks without GitHub credentials.
+`pnpm example` generates the fictional SVG shown above. Renderers use
+XML escaping, validated colors, bounded dimensions and system fonts. No scripts,
+remote images, remote fonts, arbitrary fetch URLs, or HTML rendering.
 
-Requirements: Node.js 20.9+ and pnpm.
-
-```bash
-cp .env.example .env.local
-pnpm install
-pnpm dev
-```
-
-Open `http://localhost:3000`. The website works without Redis. The card endpoint needs `GITHUB_TOKEN` to retrieve live data.
-
-## GitHub token
-
-1. Prefer a classic personal access token with no scopes, ideally from a dedicated service account. A no-scope classic token can read public GitHub data but cannot access private repositories.
-2. If a fine-grained token is used, ensure its public-repository selection covers every public repository that RepoPulse must aggregate. A fine-grained token tied to the profiled owner but restricted to selected repositories may return `FORBIDDEN` for that owner while other public profiles still work.
-3. Never grant RepoPulse access to private repositories.
-4. Set `GITHUB_TOKEN` in `.env.local` and in Vercel.
-
-The token is read exclusively by server modules and is never included in browser code, SVG output, logs, or response headers.
-
-## Upstash Redis
-
-Redis is optional locally but recommended in production:
-
-1. Create an Upstash Redis database.
-2. Copy its REST URL and REST token.
-3. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
-
-Without Redis, RepoPulse uses process-local memory. Cache failures degrade safely to GitHub retrieval rather than breaking the endpoint.
-
-## Environment
-
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `NEXT_PUBLIC_APP_URL` | Public application origin | `https://repopulse.kubik.gr` |
-| `GITHUB_TOKEN` | Server-only GitHub GraphQL credential | — |
-| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint | optional |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash REST credential | optional |
-| `REPOPULSE_CACHE_TTL_SECONDS` | Fresh SVG lifetime | `3600` |
-| `REPOPULSE_STALE_TTL_SECONDS` | Stale fallback lifetime | `86400` |
-| `REPOPULSE_RATE_LIMIT_REQUESTS` | Uncached requests per window | `60` |
-| `REPOPULSE_RATE_LIMIT_WINDOW_SECONDS` | Rate-limit window | `60` |
-
-## Card APIs
-
-- `GET /api/cards/overview`
-- `GET /api/cards/languages`
-- `GET /api/cards/contributions`
-- `GET /api/cards/streak`
-- `GET /api/cards/repository`
-- `GET /api/cards/profile`
-- `GET /api/cards/pinned`
-
-Required: `username`
-
-Optional:
-
-- `theme`: `dark`, `light`, `github-dark`, `github-light`, `midnight`
-- `width`: `320`–`900`
-- `show_avatar`: `true`, `false`, `1`, `0`
-- `show_icons`: `true`, `false`, `1`, `0`
-- `hide_border`: `true`, `false`, `1`, `0`
-- `hide`: comma-separated `contributions,repositories,stars,forks,pull_requests,commits,followers,languages`
-- `locale`: `en`, `el`, `de`, `fr`, `es`, `it`, `pt`, `ja`
-
-Every response is SVG, including validation, missing-user, rate-limit, and service errors. Cache state is exposed through `X-RepoPulse-Cache: HIT|MISS|STALE`.
-
-Languages supports `layout=default|compact|donut`, `langs_count`, `exclude`, and `hide_progress`. Contributions supports `year`, `show_total`, `show_legend`, and `show_weekdays`. Streak supports `year` and `show_ring`. See `/docs` for the complete parameter reference and calculation methodology.
-
-Repository cards accept `owner`, `repo`, metric visibility, topics and license controls. Profile cards emphasize public developer identity fields. Pinned cards use the public GitHub pinned-items connection and support one or two columns with a limit of one to six repositories. Private and inaccessible repositories always receive a generic not-found SVG.
-
-## Reliability and diagnostics
-
-Safe GitHub requests use bounded retries, explicit timeouts and an in-memory circuit breaker. Rendered SVGs use fresh and stale cache windows, in-process promise deduplication and an optional short Redis lock. Stale cards are returned immediately during upstream trouble instead of breaking README images.
-
-- `GET /api/health`: inexpensive process liveness.
-- `GET /api/readiness`: GitHub configuration, optional Redis availability and circuit state.
-- `GET /api/status`: safe public service/card inventory.
-- `GET /api/internal/refresh`: authenticated, bounded Vercel Cron refresh using `Authorization: Bearer $CRON_SECRET`.
-
-`vercel.json` schedules the refresh route once daily at approximately 03:00 UTC, which is compatible with Vercel Hobby. Hobby execution may occur at any point during the 03:00–03:59 UTC window. Set `CRON_SECRET` in Vercel; never place its value in source control. Serverless memory is instance-local, so Upstash Redis is recommended for production cache sharing and distributed locks.
-
-GitHub may cache README images, so updated data may not appear immediately even after the RepoPulse cache refreshes.
-
-## Architecture
-
-- `src/app/api/cards`: HTTP validation, status codes, safe response headers, and orchestration.
-- `src/server/github`: typed fixed GraphQL queries, client errors, and full repository pagination.
-- `src/server/cards`: normalized card models, mapping, SVG utilities, themes, and renderers.
-- `src/server/cache`: Redis-compatible cache-aside storage with memory fallback and stale serving.
-- `src/server/rate-limit`: Redis-backed IP limits with a safe local fallback.
-- `src/server/observability`: structured Vercel-friendly operational logs.
-- `src/components/playground`: debounced client configuration and live SVG preview.
-
-Raw GitHub response objects never reach the renderer. Route handlers contain neither GraphQL queries nor SVG templates.
-
-## Validation
-
-```bash
-pnpm lint
-pnpm test
-pnpm build
-pnpm format:check
-```
-
-Tests never call GitHub. They cover validation, language aggregation, exclusions, donut segments, contribution normalization, month placement, UTC year rules, streak boundary cases, XML safety, cache keys, SVG rendering, error output, and rate limiting.
-
-## Vercel deployment
-
-1. Import the repository into Vercel from the project root.
-2. Keep the Next.js framework preset and default output directory.
-3. Add the environment variables listed above.
-4. Set `repopulse.kubik.gr` as the production domain.
-5. Deploy and verify `/api/health` and all four `/api/cards/*` endpoints.
-
-## Known limitations
-
-- Contribution data is limited to what GitHub exposes to the authenticated server token.
-- Avatar rendering depends on GitHub's image host and remains optional.
-- In-memory fallback is process-local and is not shared across serverless instances.
-- GitHub and GitHub's README image proxy may each add their own caching delay.
-- Language totals use the language data exposed for owned, non-fork public repositories.
-
-## Intentionally deferred
-
-OAuth; private statistics; accounts; database entities; saved presets; dashboard analytics; API keys; arbitrary/custom themes and colors; PNG generation; banners; organization analytics; GitLab, Bitbucket and Azure DevOps; subscriptions and payments.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the small runtime flow and
+[SECURITY.md](SECURITY.md) for reporting and operational safeguards.

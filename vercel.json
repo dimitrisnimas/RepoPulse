@@ -1,9 +1,7 @@
 {
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "crons": [
-    {
-      "path": "/api/internal/refresh",
-      "schedule": "0 3 * * *"
-    }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nestjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "functions": { "src/main.ts": { "maxDuration": 30 } }
 }

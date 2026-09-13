@@ -1,7 +1,0 @@
-overrides:
-  sharp: 0.35.0
-  postcss: 8.5.25
-
-allowBuilds:
-  sharp: true
-  unrs-resolver: true

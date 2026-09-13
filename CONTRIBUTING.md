@@ -1,5 +1,10 @@
 # Contributing
 
-Use Node.js 22 and pnpm 10. Install with `pnpm install --frozen-lockfile`, create a focused branch, and run `pnpm check` before opening a pull request. Public API changes require compatibility tests and documentation. Security-sensitive renderers require malicious-input tests.
+Use Node 22 and pnpm 10.32.1. Run `pnpm install --frozen-lockfile`, `pnpm check`, and
+`pnpm audit --audit-level=high`. Commit lockfile changes deliberately. The repository
+intentionally does not include tests. Checks must not require GitHub credentials.
 
-Keep server-only code under `src/server`, route handlers thin, cache keys canonical, renderers deterministic, and browser-only Studio state versioned. Do not commit `.env`, tokens, generated builds, logs, or benchmark output.
+Keep the scope to one activity card. Review authentication, owner selection,
+upstream failures and rendering boundaries when changing them. Regenerate
+`docs/example.svg` with `pnpm example` after visual changes and inspect it. Use only
+synthetic repository data in examples. Never commit local environment files.

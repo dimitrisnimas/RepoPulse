@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+docs/REWRITE_AUDIT.md
+docs/example.svg
+dist/
+node_modules/

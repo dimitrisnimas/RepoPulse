@@ -1,2 +1,0 @@
-export interface LanguagesCardData { username: string; totalRepositoriesAnalyzed: number; totalBytes: number; languages: Array<{ name: string; color: string; bytes: number; percentage: number }>; generatedAt: string }
-export interface LanguagesOptions { username: string; theme: string; width: number; layout: "default" | "compact" | "donut"; langsCount: number; exclude: string[]; hideProgress: boolean; hideBorder: boolean; locale: string }
