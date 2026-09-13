@@ -154,7 +154,9 @@ after you disable publication. [GitHub image proxy documentation](https://docs.g
    owner scopes. Enable public SVG publication only after reviewing the output.
 
 The entrypoint is `src/main.ts`; Vercel's native Nest integration runs the app as
-one Node function. Keep the function duration above the fifteen-second upstream
+one Node function. When `VERCEL=1` (set by Vercel), the entrypoint initializes Nest
+and exports its Express handler without calling `listen()`. Local execution starts
+the listener normally. Keep the function duration above the fifteen-second upstream
 deadline (for example, 30 seconds) in the Vercel project settings. Do not add a
 `functions` pattern for `src/main.ts`: it is a framework entrypoint, not a standalone
 function under `api/`. [NestJS on Vercel](https://vercel.com/docs/frameworks/backend/nestjs).

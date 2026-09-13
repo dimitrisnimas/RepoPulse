@@ -34,6 +34,9 @@ and `.js` relative imports) to load NestJS 12 without relying on `require(esm)`.
 Native Vercel detection uses `src/main.ts`; helper modules must not
 shadow recognized entrypoint names such as `src/app.ts`. No custom serverless
 wrapper, per-request Nest bootstrap, Edge runtime, or persistent process assumption.
+The entrypoint exports the initialized Express handler. On Vercel it does not call
+`listen()`: awaiting an intercepted listener during ESM import can block module
+loading. Local execution still starts the HTTP listener.
 
 **Fine-grained PAT per owner.** The simplest credential setup for one operator and
 up to two owners. Selected repositories, Contents read and implicit Metadata read;

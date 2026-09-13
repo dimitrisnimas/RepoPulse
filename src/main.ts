@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import type { Express } from "express";
 import { AppModule } from "./app.module.js";
 import { configureApplication } from "./bootstrap.js";
 import { ConfigurationError, readConfig } from "./config.js";
@@ -19,11 +20,18 @@ async function bootstrap() {
     },
   );
   configureApplication(app);
-  startupStage = "HTTP listen";
-  await app.listen(config.port);
+  startupStage = "route initialization";
+  await app.init();
+  if (process.env.VERCEL !== "1") {
+    startupStage = "HTTP listen";
+    await app.listen(config.port);
+  }
+  return app.getHttpAdapter().getInstance() as Express;
 }
 
-await bootstrap().catch((error: unknown) => {
+// Vercel owns the HTTP listener. Export the initialized Express handler so module
+// loading never waits for a listen callback intercepted by its runtime.
+const server = await bootstrap().catch((error: unknown) => {
   // Never serialize framework errors: they can contain configuration or request data.
   const message =
     error instanceof ConfigurationError
@@ -33,3 +41,5 @@ await bootstrap().catch((error: unknown) => {
   // Reject module loading instead of letting Vercel inspect an unstarted server.
   throw new Error(`RepoPulse: ${message}`);
 });
+
+export default server;
