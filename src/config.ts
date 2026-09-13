@@ -16,8 +16,8 @@ const schema = z.object({
     .min(43)
     .max(256)
     .regex(/^[A-Za-z0-9_-]+$/),
-  GITHUB_PERSONAL_OWNER: owner,
-  GITHUB_PERSONAL_TOKEN: token,
+  GITHUB_PERSONAL_OWNER: owner.optional(),
+  GITHUB_PERSONAL_TOKEN: token.optional(),
   GITHUB_ORG_OWNER: owner.optional(),
   GITHUB_ORG_TOKEN: token.optional(),
   REPOPULSE_REPOSITORIES: z.string().min(1).max(12000),
@@ -58,6 +58,9 @@ export interface Config {
 }
 export const CONFIG = Symbol("CONFIG");
 
+// Messages contain only fixed guidance and schema field names, never values.
+export class ConfigurationError extends Error {}
+
 export function readConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): Config {
@@ -73,22 +76,38 @@ export function readConfig(
     const fields = [
       ...new Set(parsed.error.issues.map((issue) => issue.path[0])),
     ];
-    throw new Error(`Invalid configuration: ${fields.join(", ")}`);
+    throw new ConfigurationError(`Invalid configuration: ${fields.join(", ")}`);
   }
   const values = parsed.data;
-  if (Boolean(values.GITHUB_ORG_OWNER) !== Boolean(values.GITHUB_ORG_TOKEN)) {
-    throw new Error("Configure both GITHUB_ORG_OWNER and GITHUB_ORG_TOKEN");
+  if (
+    Boolean(values.GITHUB_PERSONAL_OWNER) !==
+    Boolean(values.GITHUB_PERSONAL_TOKEN)
+  ) {
+    throw new ConfigurationError(
+      "Configure both GITHUB_PERSONAL_OWNER and GITHUB_PERSONAL_TOKEN",
+    );
   }
-  const personalOwner = values.GITHUB_PERSONAL_OWNER.toLowerCase();
-  const credentials = new Map([[personalOwner, values.GITHUB_PERSONAL_TOKEN]]);
+  if (Boolean(values.GITHUB_ORG_OWNER) !== Boolean(values.GITHUB_ORG_TOKEN)) {
+    throw new ConfigurationError(
+      "Configure both GITHUB_ORG_OWNER and GITHUB_ORG_TOKEN",
+    );
+  }
+  const personalOwner = values.GITHUB_PERSONAL_OWNER?.toLowerCase();
+  const credentials = new Map<string, string>();
+  if (personalOwner && values.GITHUB_PERSONAL_TOKEN)
+    credentials.set(personalOwner, values.GITHUB_PERSONAL_TOKEN);
   if (values.GITHUB_ORG_OWNER && values.GITHUB_ORG_TOKEN) {
     const org = values.GITHUB_ORG_OWNER.toLowerCase();
     if (org === personalOwner)
-      throw new Error("GitHub owners must be distinct");
+      throw new ConfigurationError("GitHub owners must be distinct");
     credentials.set(org, values.GITHUB_ORG_TOKEN);
   }
+  if (credentials.size === 0)
+    throw new ConfigurationError(
+      "Configure a personal or organization owner/token pair",
+    );
   if ([...credentials.values()].includes(values.REPOPULSE_API_KEY)) {
-    throw new Error(
+    throw new ConfigurationError(
       "The operator key must be separate from GitHub credentials",
     );
   }
@@ -98,7 +117,7 @@ export function readConfig(
       JSON.parse(values.REPOPULSE_REPOSITORIES),
     );
   } catch {
-    throw new Error(
+    throw new ConfigurationError(
       "Invalid REPOPULSE_REPOSITORIES: expected 1–12 repository entries",
     );
   }
@@ -117,7 +136,7 @@ export function readConfig(
       !credentials.has(login.toLowerCase()) ||
       seen.has(entry.repository.toLowerCase())
     ) {
-      throw new Error(
+      throw new ConfigurationError(
         "Invalid, duplicate, or unconfigured owner in REPOPULSE_REPOSITORIES",
       );
     }

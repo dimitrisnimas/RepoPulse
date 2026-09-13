@@ -39,7 +39,7 @@ Create a **fine-grained personal access token** for your personal account. Choos
 repository **Contents: read-only**. Metadata read is included. No write, Issues,
 Pull requests, administration, or organization-members permissions are needed.
 
-For organization repositories, create a second fine-grained PAT with that
+For organization repositories, create a fine-grained PAT with that
 organization as its resource owner. Obtain organization approval if required.
 Configure its actual GitHub login, not its display name. A token restricted to your
 personal account does not also authorize private organization repositories.
@@ -57,8 +57,8 @@ instead of broadening PAT permissions; App authentication is not implemented her
 | Variable                     | Meaning                                                                                                        |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `REPOPULSE_API_KEY`          | Required separate random operator secret, at least 43 base64url/hex characters                                 |
-| `GITHUB_PERSONAL_OWNER`      | Required personal GitHub login                                                                                 |
-| `GITHUB_PERSONAL_TOKEN`      | Required fine-grained personal PAT                                                                             |
+| `GITHUB_PERSONAL_OWNER`      | Optional personal GitHub login; requires its token                                                             |
+| `GITHUB_PERSONAL_TOKEN`      | Optional fine-grained personal PAT; requires its owner                                                         |
 | `GITHUB_ORG_OWNER`           | Optional organization GitHub login; requires its token                                                         |
 | `GITHUB_ORG_TOKEN`           | Optional organization PAT; requires its owner                                                                  |
 | `REPOPULSE_REPOSITORIES`     | Required JSON array of 1–12 unique entries: `{"repository":"owner/repo","description":"Optional description"}` |
@@ -184,3 +184,6 @@ remote images, remote fonts, arbitrary fetch URLs, or HTML rendering.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the small runtime flow and
 [SECURITY.md](SECURITY.md) for reporting and operational safeguards.
+
+Configure at least one complete owner/token pair. For organization-only cards, omit
+both `GITHUB_PERSONAL_OWNER` and `GITHUB_PERSONAL_TOKEN`; configure only the organization pair.

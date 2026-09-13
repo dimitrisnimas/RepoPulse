@@ -3,10 +3,13 @@ import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module.js";
 import { configureApplication } from "./bootstrap.js";
-import { readConfig } from "./config.js";
+import { ConfigurationError, readConfig } from "./config.js";
+
+let startupStage = "configuration";
 
 async function bootstrap() {
   const config = readConfig();
+  startupStage = "Nest initialization";
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule.register(config),
     {
@@ -16,13 +19,17 @@ async function bootstrap() {
     },
   );
   configureApplication(app);
+  startupStage = "HTTP listen";
   await app.listen(config.port);
 }
 
-void bootstrap().catch(() => {
+await bootstrap().catch((error: unknown) => {
   // Never serialize framework errors: they can contain configuration or request data.
-  console.error(
-    "RepoPulse could not start. Check the documented environment configuration.",
-  );
-  process.exitCode = 1;
+  const message =
+    error instanceof ConfigurationError
+      ? error.message
+      : `Startup failed during ${startupStage}`;
+  console.error(`RepoPulse: ${message}`);
+  // Reject module loading instead of letting Vercel inspect an unstarted server.
+  throw new Error(`RepoPulse: ${message}`);
 });
