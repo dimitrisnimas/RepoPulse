@@ -154,8 +154,10 @@ after you disable publication. [GitHub image proxy documentation](https://docs.g
    owner scopes. Enable public SVG publication only after reviewing the output.
 
 The entrypoint is `src/main.ts`; Vercel's native Nest integration runs the app as
-one Node function. The configured duration is 30 seconds, above the upstream work
-deadline. [NestJS on Vercel](https://vercel.com/docs/frameworks/backend/nestjs).
+one Node function. Keep the function duration above the fifteen-second upstream
+deadline (for example, 30 seconds) in the Vercel project settings. Do not add a
+`functions` pattern for `src/main.ts`: it is a framework entrypoint, not a standalone
+function under `api/`. [NestJS on Vercel](https://vercel.com/docs/frameworks/backend/nestjs).
 
 Migrating an existing deployment is a breaking change: update README URLs, remove
 the old cron and Redis settings, and rotate/replace old credentials. Rolling back
