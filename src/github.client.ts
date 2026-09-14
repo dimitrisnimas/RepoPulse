@@ -30,7 +30,12 @@ const repositorySchema = z.object({
 const payloadSchema = z.object({
   data: z.record(z.string(), repositorySchema.nullable()).nullish(),
   errors: z
-    .array(z.object({ type: z.string().optional() }))
+    .array(
+      z.object({
+        type: z.string().optional(),
+        path: z.array(z.union([z.string(), z.number()])).optional(),
+      }),
+    )
     .max(100)
     .optional(),
 });
@@ -157,18 +162,29 @@ export class GitHubClient {
               503,
               retrySeconds(response.headers),
             );
-          if (types.includes("NOT_FOUND"))
-            throw new ServiceError("NOT_FOUND", 404);
           if (
             types.includes("FORBIDDEN") ||
             types.includes("INSUFFICIENT_SCOPES")
           )
             throw new ServiceError("GITHUB_PERMISSION_DENIED", 503);
-          throw new ServiceError("GITHUB_UNAVAILABLE", 502);
+          // Only tolerate NOT_FOUND on a requested repository field. Other
+          // errors (including nested field errors) must not become partial data.
+          if (
+            !payload.errors.every((error) => {
+              const alias = error.path?.[0];
+              return (
+                error.type === "NOT_FOUND" &&
+                error.path?.length === 1 &&
+                refs.some((_, index) => alias === `r${index}`) &&
+                payload.data?.[String(alias)] === null
+              );
+            })
+          )
+            throw new ServiceError("GITHUB_UNAVAILABLE", 502);
         }
-        return refs.map((ref, index): RepositoryActivity => {
+        return refs.flatMap((ref, index): RepositoryActivity[] => {
           const repository = payload.data?.[`r${index}`];
-          if (repository === null) throw new ServiceError("NOT_FOUND", 404);
+          if (repository === null) return [];
           if (!repository) throw new ServiceError("GITHUB_UNAVAILABLE", 502);
           if (
             repository.nameWithOwner.toLowerCase() !==
@@ -179,15 +195,17 @@ export class GitHubClient {
           const history = repository.defaultBranchRef?.target.history;
           if (history && history.totalCount > 0 !== history.nodes.length > 0)
             throw new ServiceError("GITHUB_UNAVAILABLE", 502);
-          return {
-            repository: repository.nameWithOwner,
-            description: ref.description,
-            private: repository.isPrivate,
-            language: repository.primaryLanguage?.name ?? null,
-            languageColor: repository.primaryLanguage?.color ?? null,
-            commits: history?.totalCount ?? 0,
-            lastCommitAt: history?.nodes[0]?.committedDate ?? null,
-          };
+          return [
+            {
+              repository: repository.nameWithOwner,
+              description: ref.description,
+              private: repository.isPrivate,
+              language: repository.primaryLanguage?.name ?? null,
+              languageColor: repository.primaryLanguage?.color ?? null,
+              commits: history?.totalCount ?? 0,
+              lastCommitAt: history?.nodes[0]?.committedDate ?? null,
+            },
+          ];
         });
       } catch (error) {
         if (deadline.aborted) throw new ServiceError("UPSTREAM_TIMEOUT", 504);

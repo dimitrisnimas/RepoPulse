@@ -59,7 +59,9 @@ operator credentials. No signed URLs or secrets embedded in README links.
 **Small upstream workload.** Each owner has one GraphQL batch built from fixed
 fragments and variables, querying history total/latest committed date plus identity
 and language. No repository listing, file reads, author tracking, pagination or
-REST client is needed. Missing/invalid/partial data fail the card. Empty branches
+REST client is needed. Repository-level NOT_FOUND/null results are skipped and
+queried again on the next snapshot refresh; an empty result renders an empty card.
+Other errors and malformed data still fail the card. Empty branches
 are represented honestly as zero commits and no date.
 
 **Bounded transient work.** Six seconds per attempt, one transient retry, fifteen

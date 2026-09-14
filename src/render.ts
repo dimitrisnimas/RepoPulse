@@ -65,8 +65,15 @@ export function renderActivity(
 ): string {
   const p = palettes[options.theme];
   const rows = data.repositories;
-  if (!rows.length || rows.length > 12)
-    throw new Error("Invalid activity model");
+  if (rows.length > 12) throw new Error("Invalid activity model");
+  if (!rows.length)
+    return document(
+      `<text x="30" y="44" class="bold" font-size="23">${shorten(options.title, 43)}</text><text x="30" y="78" class="muted" font-size="14">No repositories available yet.</text>`,
+      110,
+      options.theme,
+      options.title,
+      "No repositories available yet.",
+    );
   const total = rows.reduce((sum, row) => sum + row.commits, 0);
   if (!Number.isSafeInteger(total) || total < 0)
     throw new Error("Invalid commit total");

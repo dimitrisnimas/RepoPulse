@@ -95,13 +95,16 @@ curl --fail-with-body -H "Authorization: Bearer $API_KEY" \
 ```
 
 No bearer key in URLs, README source, or client code. Errors preserve HTTP status:
-400 for query parameters, 401 for operator authentication, 404 for missing or
-inaccessible repositories, 502 for upstream failures, 503 for GitHub credentials,
+400 for query parameters, 401 for operator authentication, 404 for unknown routes or
+renamed/transferred repositories, 502 for upstream failures, 503 for GitHub credentials,
 permissions or rate limits, 504 for the overall deadline, and 500 for unexpected
 rendering failures. Rate-limit responses include Retry-After. SVG errors contain
 no repository details; JSON errors contain a stable code and request ID, never raw
-GitHub errors. A partial GitHub failure fails the whole card rather than showing
-an incomplete total.
+GitHub errors. Repositories that GitHub reports as not found are skipped; this can
+also mean the token cannot access them. They are retried on the next snapshot refresh
+(five-minute cache), so newly created repositories appear once the token can access
+them. Totals cover only returned repositories. If none are available, the card shows
+"No repositories available yet." Other upstream errors still fail the card.
 
 ## Embed in a README
 
